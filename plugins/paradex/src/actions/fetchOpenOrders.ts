@@ -1,14 +1,14 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { Account, SystemConfig } from '../interfaces/config';
-import { authenticate } from '../utils/paradex-ts/api';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { Account, SystemConfig } from '../interfaces/config.js';
+import { authenticate } from '../utils/paradex-ts/api.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../utils/utils';
-import { GetOpenOrdersParams } from '../interfaces/params';
-import { ParadexOpenOrdersError } from '../interfaces/errors';
-import { OrderResult, OrderResponse } from '../interfaces/results';
+} from '../utils/utils.js';
+import { GetOpenOrdersParams } from '../interfaces/params.js';
+import { ParadexOpenOrdersError } from '../interfaces/errors.js';
+import { OrderResult, OrderResponse } from '../interfaces/results.js';
 
 // Service class for open orders operations
 export class OpenOrdersService {

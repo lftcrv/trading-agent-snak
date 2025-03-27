@@ -29,15 +29,6 @@
   "chat_id": "sak_guide",
   "external_plugins": [],
   "internal_plugins": [
-    "argent",
-    "fibrous",
-    "okx",
-    "braavos",
-    "openzeppelin",
-    "rpc",
-    "transaction",
-    "avnu",
-    "erc20",
-    "erc721"
+    "paradex"
   ]
 }

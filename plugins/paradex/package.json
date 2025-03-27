@@ -13,7 +13,8 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "dependencies": {
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "bignumber.js": "^9.1.2"
   },
   "devDependencies": {
     "@starknet-agent-kit/agents": "workspace:*"

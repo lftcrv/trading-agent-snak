@@ -1,13 +1,13 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { Account, SystemConfig } from '../interfaces/config';
-import { authenticate } from '../utils/paradex-ts/api';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { Account, SystemConfig } from '../interfaces/config.js';
+import { authenticate } from '../utils/paradex-ts/api.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../utils/utils';
-import { ParadexBalanceError } from '../interfaces/errors';
-import { BalanceResult, BalanceResponse } from '../interfaces/results';
+} from '../utils/utils.js';
+import { ParadexBalanceError } from '../interfaces/errors.js';
+import { BalanceResult, BalanceResponse } from '../interfaces/results.js';
 
 export class BalanceService {
   private formatBalance(balance: BalanceResult): string {
@@ -21,7 +21,7 @@ export class BalanceService {
         'Balance data:',
         balance
       );
-      return 'Error formatting USDC balance';
+      return 'Error formatting USDC balance.js';
     }
   }
 

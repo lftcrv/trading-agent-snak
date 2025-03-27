@@ -83,23 +83,26 @@ export const registerTools = async (
   tools: StarknetTool[]
 ) => {
   try {
-    let index = 0;
     await Promise.all(
-      allowed_tools.map(async (tool) => {
-        index = index + 1;
+      allowed_tools.map(async (toolName) => {
+        const localPath = new URL(
+          `../../../plugins/${toolName}/dist/index.js`,
+          import.meta.url
+        ).href;
 
-        const imported_tool = await import(
-          `@starknet-agent-kit/plugin-${tool}/dist/index.js`
-        );
+        const imported_tool = await import(localPath);
+
         if (typeof imported_tool.registerTools !== 'function') {
+          console.warn(`No registerTools() found in plugin ${toolName}`);
           return false;
         }
+
         await imported_tool.registerTools(tools, agent);
         return true;
       })
     );
   } catch (error) {
-    console.log(error);
+    console.error('Error while loading tools:', error);
   }
 };
 

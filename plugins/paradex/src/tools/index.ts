@@ -13,81 +13,81 @@ import {
   placeOrderLimitSchema,
   placeOrderMarketSchema,
 } from '../schema/index.js';
-import { paradexCancelOrder } from '@/actions/cancelOrder.js';
-import { paradexGetBalance } from '@/actions/fetchAccountBalance.js';
-import { paradexGetOpenOrders } from '@/actions/fetchOpenOrders.js';
-import { paradexGetOpenPositions } from '@/actions/fetchOpenPositions.js';
-import { paradexGetBBO } from '@/actions/getBBO.js';
-import { paradexListMarkets } from '@/actions/listMarketsOnParadex.js';
-import { paradexPlaceOrderLimit } from '@/actions/placeOrderLimit.js';
-import { paradexPlaceOrderMarket } from '@/actions/placeOrderMarket.js';
 
-export const registerParadexTools = () => {
-  StarknetToolRegistry.registerTool({
+import { paradexCancelOrder } from '../actions/cancelOrder.js';
+import { paradexGetBalance } from '../actions/fetchAccountBalance.js';
+import { paradexGetOpenOrders } from '../actions/fetchOpenOrders.js';
+import { paradexGetOpenPositions } from '../actions/fetchOpenPositions.js';
+import { paradexGetBBO } from '../actions/getBBO.js';
+import { paradexListMarkets } from '../actions/listMarketsOnParadex.js';
+import { paradexPlaceOrderLimit } from '../actions/placeOrderLimit.js';
+import { paradexPlaceOrderMarket } from '../actions/placeOrderMarket.js';
+
+export const registerTools = (
+  StarknetToolRegistry: StarknetTool[],
+  agent?: StarknetAgentInterface
+) => {
+  StarknetToolRegistry.push({
     name: 'place_order_limit',
     plugins: 'paradex',
     description:
-      'Place an order limit on Paradex exchange. Base you on paradex analysis and your paradex positions to decide if you should use this action',
+      'Place a limit order on Paradex based on analysis and positions.',
     schema: placeOrderLimitSchema,
     execute: paradexPlaceOrderLimit,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'place_order_market',
     plugins: 'paradex',
-    description:
-      'Place an order market on Paradex exchange. Base you on paradex analysis to decide if you should use this action',
+    description: 'Place a market order on Paradex based on your analysis.',
     schema: placeOrderMarketSchema,
     execute: paradexPlaceOrderMarket,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'cancel_order',
     plugins: 'paradex',
-    description:
-      'Cancel an unexecuted order (not yet filled) on Paradex exchange without affecting the position or the asset balance',
+    description: 'Cancel a pending (unfilled) order on Paradex.',
     schema: cancelOrderSchema,
     execute: paradexCancelOrder,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_open_orders',
     plugins: 'paradex',
-    description:
-      'Get all open orders on Paradex exchange, optionally filtered by market',
+    description: 'Retrieve open orders on Paradex.',
     schema: getOpenOrdersSchema,
     execute: paradexGetOpenOrders,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_open_positions',
     plugins: 'paradex',
-    description:
-      'Get all open positions on Paradex exchange, optionally filtered by market',
+    description: 'Get active open positions on Paradex.',
     schema: getOpenPositionsSchema,
     execute: paradexGetOpenPositions,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_balance_on_paradex',
     plugins: 'paradex',
-    description: 'Get account balance on Paradex exchange (USDC)',
+    description: 'Check Paradex account balance (typically USDC).',
     schema: getBalanceSchema,
     execute: paradexGetBalance,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_bbo',
     plugins: 'paradex',
-    description: 'Get Best Bid/Offer data for a specified Paradex market',
+    description: 'Fetch Best Bid/Offer (BBO) for a given market.',
     schema: getBBOSchema,
     execute: paradexGetBBO,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'list_markets',
     plugins: 'paradex',
-    description: 'Get a list of all available market symbols on Paradex',
+    description: 'List all available trading pairs on Paradex.',
     schema: listMarketsSchema,
     execute: paradexListMarkets,
   });

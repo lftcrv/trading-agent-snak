@@ -1,13 +1,13 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { Account, SystemConfig } from '../interfaces/config';
-import { authenticate } from '../utils/paradex-ts/api';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { Account, SystemConfig } from '../interfaces/config.js';
+import { authenticate } from '../utils/paradex-ts/api.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../utils/utils';
-import { ParadexCancelError } from '../interfaces/errors';
-import { CancelOrderParams } from '../interfaces/params';
+} from '../utils/utils.js';
+import { ParadexCancelError } from '../interfaces/errors.js';
+import { CancelOrderParams } from '../interfaces/params.js';
 
 export class CancelOrderService {
   async cancelOrder(
@@ -38,7 +38,7 @@ export class CancelOrderService {
         try {
           errorData = await response.json();
         } catch {
-          errorData = 'Could not parse error response';
+          errorData = 'Could not parse error response.js';
         }
         throw new ParadexCancelError(
           `Failed to cancel order: ${response.status} ${response.statusText}`,

@@ -1,13 +1,13 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { Account, SystemConfig } from '../interfaces/config';
-import { authenticate } from '../utils/paradex-ts/api';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { Account, SystemConfig } from '../interfaces/config.js';
+import { authenticate } from '../utils/paradex-ts/api.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../utils/utils';
-import { PositionResponse, PositionResult } from '../interfaces/results';
-import { GetOpenPositionsParams } from '../interfaces/params';
+} from '../utils/utils.js';
+import { PositionResponse, PositionResult } from '../interfaces/results.js';
+import { GetOpenPositionsParams } from '../interfaces/params.js';
 
 // Custom error for open positions operations
 export class ParadexOpenPositionsError extends Error {
@@ -16,7 +16,7 @@ export class ParadexOpenPositionsError extends Error {
     public details?: any
   ) {
     super(message);
-    this.name = 'ParadexOpenPositionsError';
+    this.name = 'ParadexOpenPositionsError.js';
   }
 }
 

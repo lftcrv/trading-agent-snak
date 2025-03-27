@@ -1,16 +1,16 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { SystemConfig } from '../interfaces/config';
-import { ParadexBBOError } from '../interfaces/errors';
-import { GetBBOParams } from '../interfaces/params';
-import { BBOResponse, MarketMetrics } from '../interfaces/results';
-import { getParadexConfig } from '../utils/utils';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { SystemConfig } from '../interfaces/config.js';
+import { ParadexBBOError } from '../interfaces/errors.js';
+import { GetBBOParams } from '../interfaces/params.js';
+import { BBOResponse, MarketMetrics } from '../interfaces/results.js';
+import { getParadexConfig } from '../utils/utils.js';
 export class BBOService {
   private formatNumber(value: string, decimals: number = 2): string {
     try {
       const num = parseFloat(value);
       return isNaN(num) ? 'N/A' : num.toFixed(decimals);
     } catch {
-      return 'N/A';
+      return 'N/A.js';
     }
   }
 

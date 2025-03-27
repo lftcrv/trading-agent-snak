@@ -1,15 +1,15 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { PlaceOrderMarketParams, PlaceOrderParams } from '../interfaces/params';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { PlaceOrderMarketParams, PlaceOrderParams } from '../interfaces/params.js';
 
-import { Account, SystemConfig } from '../interfaces/config';
-import { signOrder } from '../utils/paradex-ts/signature';
-import { authenticate } from '../utils/paradex-ts/api';
+import { Account, SystemConfig } from '../interfaces/config.js';
+import { signOrder } from '../utils/paradex-ts/signature.js';
+import { authenticate } from '../utils/paradex-ts/api.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../utils/utils';
-import { ParadexOrderError } from '../interfaces/errors';
+} from '../utils/utils.js';
+import { ParadexOrderError } from '../interfaces/errors.js';
 import { time } from 'console';
 
 export class POService {

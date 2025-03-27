@@ -1,8 +1,8 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { SystemConfig } from '../interfaces/config';
-import { ListMarketResponse } from '../interfaces/results';
-import { getParadexConfig } from '../utils/utils';
-import { ParadexListMarketsError } from '../interfaces/errors';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { SystemConfig } from '../interfaces/config.js';
+import { ListMarketResponse } from '../interfaces/results.js';
+import { getParadexConfig } from '../utils/utils.js';
+import { ParadexListMarketsError } from '../interfaces/errors.js';
 
 export class ListMarketsService {
   async fetchMarkets(config: SystemConfig): Promise<string[]> {
