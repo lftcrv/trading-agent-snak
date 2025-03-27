@@ -4,30 +4,9 @@ import { validateParadexConfig } from './environment.js';
 import { ParadexOrderError } from '../interfaces/errors.js';
 import * as fs from 'fs';
 
-// Function to load environment variables from /etc/environment
-function loadEnvironmentVariables() {
-  try {
-    console.log('Loading environment variables from /etc/environment...');
-    const envFile = fs.readFileSync('/etc/environment', 'utf8');
-    const envVars = envFile.split('\n');
-
-    for (const line of envVars) {
-      if (line.trim()) {
-        const [key, value] = line
-          .split('=')
-          .map((part) => part.trim().replace(/^'|'$/g, ''));
-        process.env[key] = value;
-        console.log(`Loaded: ${key}=${value.substring(0, 10)}...`);
-      }
-    }
-    console.log('Environment variables loaded successfully');
-  } catch (error) {
-    console.error('Error loading environment variables:', error);
-  }
-}
-
-// Load environment variables when the module is imported
-loadEnvironmentVariables();
+export const getParadexEnv = () => {
+  return validateParadexConfig();
+};
 
 export function getParadexConfig(): SystemConfig {
   const network = process.env.PARADEX_NETWORK?.toLowerCase();

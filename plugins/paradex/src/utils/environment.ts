@@ -1,15 +1,13 @@
 import { z } from 'zod';
 
 // Schema for environment variables
-export const paradexEnvSchema = z.object({
-  PARADEX_NETWORK: z.enum(['testnet', 'prod']),
-  PARADEX_ACCOUNT_ADDRESS: z
-    .string()
-    .min(1, 'Paradex account address is required'),
-  PARADEX_PRIVATE_KEY: z.string().min(1, 'Paradex private key is required'),
-  ETHEREUM_ACCOUNT_ADDRESS: z
-    .string()
-    .min(1, 'Ethereum account address is required'),
+const paradexEnvSchema = z.object({
+  PARADEX_NETWORK: z.enum(['mainnet', 'testnet']),
+  PARADEX_MAINNET_ADDRESS: z.string().optional(),
+  PARADEX_TESTNET_ADDRESS: z.string().optional(),
+  PARADEX_MAINNET_PRIVATE_KEY: z.string().optional(),
+  PARADEX_TESTNET_PRIVATE_KEY: z.string().optional(),
+  ETHEREUM_ACCOUNT_ADDRESS: z.string(),
 });
 
 export type ParadexConfig = z.infer<typeof paradexEnvSchema>;

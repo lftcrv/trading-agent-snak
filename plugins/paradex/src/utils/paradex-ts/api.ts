@@ -51,7 +51,6 @@ export async function authenticate(config: SystemConfig, account: Account) {
 
   try {
     console.log(`${config.apiBaseUrl}/auth`);
-    console.log('account:', account);
     const response = await fetch(`${config.apiBaseUrl}/auth`, {
       method: 'POST',
       headers,
