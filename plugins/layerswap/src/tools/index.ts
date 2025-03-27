@@ -17,7 +17,7 @@ import {
 /**
  * Registers all Layerswap-related tools with the Starknet Tool Registry
  */
-export const pushs = (
+export const registerTools = (
   StarknetToolRegistry: StarknetTool[],
   agent?: StarknetAgentInterface
 ) => {
