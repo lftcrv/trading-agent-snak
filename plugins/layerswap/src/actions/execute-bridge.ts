@@ -1,13 +1,12 @@
-import { StarknetAgentInterface } from "@agents/index";
-import { ExecuteBridgeParams } from '../schema';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { ExecuteBridgeParams } from '../schema/index.js';
 import {
-  LayerswapConstant,
-  SwapStatus,
   SwapInput,
+  LayerswapConstant,
   SwapResponseData,
-  SwapResponse,
-} from '../types';
-import { LayerswapManager } from './layerswap-manager';
+  SwapStatus,
+} from '../types/index.js';
+import { LayerswapManager } from './layerswap-manager.js';
 
 /**
  * Executes a complete bridge operation
@@ -21,7 +20,6 @@ export const layerswap_execute_bridge = async (
   params: ExecuteBridgeParams
 ) => {
   try {
-
     const layerswapManager = new LayerswapManager(agent);
 
     // Step 1: Check route limits
@@ -88,7 +86,6 @@ export const layerswap_execute_bridge = async (
 
       if (calldata && calldata.length > 0) {
         txHash = await layerswapManager.executeMultiCall(calldata);
-
       } else {
         throw new Error('Invalid call data format from Layerswap');
       }

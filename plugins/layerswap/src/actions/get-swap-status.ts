@@ -1,6 +1,6 @@
-import { StarknetAgentInterface } from "@agents/index";
-import { GetSwapStatusParams } from '../schema';
-import { LayerswapManager } from './layerswap-manager';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { GetSwapStatusParams } from "../schema/index.js";
+import { LayerswapManager } from "./layerswap-manager.js";
 
 /**
  * Gets the status of a swap

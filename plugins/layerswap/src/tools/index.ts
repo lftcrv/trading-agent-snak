@@ -1,25 +1,28 @@
-import { StarknetToolRegistry } from 'src/lib/agent/tools/tools';
 import {
-  // layerswap_get_available_routes,
-  layerswap_get_quote,
-  layerswap_create_swap,
-  layerswap_get_swap_status,
-  layerswap_execute_bridge,
-} from '../actions';
+  StarknetTool,
+  StarknetAgentInterface,
+} from '@starknet-agent-kit/agents';
+
+import { layerswap_create_swap } from '../actions/create-swap.js';
+import { layerswap_execute_bridge } from '../actions/execute-bridge.js';
+import { layerswap_get_quote } from '../actions/get-quote.js';
+import { layerswap_get_swap_status } from '../actions/get-swap-status.js';
 import {
-  getAvailableRoutesSchema,
   getSwapQuoteSchema,
   createSwapSchema,
   getSwapStatusSchema,
   executeBridgeSchema,
-} from '../schema';
+} from '../schema/index.js';
 
 /**
  * Registers all Layerswap-related tools with the Starknet Tool Registry
  */
-export const registerLayerswapTools = () => {
+export const pushs = (
+  StarknetToolRegistry: StarknetTool[],
+  agent?: StarknetAgentInterface
+) => {
   // Tool to get available bridge routes
-  // StarknetToolRegistry.registerTool({
+  // StarknetToolRegistry.push({
   //   name: 'layerswap_get_available_routes',
   //   plugins: 'layerswap',
   //   description: 'Get available routes for bridging assets between networks',
@@ -28,7 +31,7 @@ export const registerLayerswapTools = () => {
   // });
 
   // Tool to get a bridge quote
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'layerswap_get_quote',
     plugins: 'layerswap',
     description: 'Get a quote for bridging assets between networks',
@@ -37,7 +40,7 @@ export const registerLayerswapTools = () => {
   });
 
   // Tool to create a new swap
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'layerswap_create_swap',
     plugins: 'layerswap',
     description: 'Create a new swap for bridging assets',
@@ -46,7 +49,7 @@ export const registerLayerswapTools = () => {
   });
 
   // Tool to get swap status
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'layerswap_get_swap_status',
     plugins: 'layerswap',
     description: 'Get the current status of a swap',
@@ -55,7 +58,7 @@ export const registerLayerswapTools = () => {
   });
 
   // Tool to execute a complete bridge operation
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'layerswap_execute_bridge',
     plugins: 'layerswap',
     description:

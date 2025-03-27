@@ -1,6 +1,6 @@
-import { StarknetAgentInterface } from "@agents/index";
-import { GetSwapQuoteParams } from '../schema';
-import { LayerswapManager } from './layerswap-manager';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { LayerswapManager } from './layerswap-manager.js';
+import { GetSwapQuoteParams } from '../schema/index.js';
 
 /**
  * Gets a quote for a swap
@@ -14,7 +14,6 @@ export const layerswap_get_quote = async (
   params: GetSwapQuoteParams
 ) => {
   try {
-
     const layerswapManager = new LayerswapManager(agent);
     const quote = await layerswapManager.getQuote(params);
     return {

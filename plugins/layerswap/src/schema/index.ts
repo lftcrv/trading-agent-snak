@@ -1,5 +1,4 @@
 import z from 'zod';
-import { NetworkType } from '../types';
 
 /**
  * Schema for getting available routes

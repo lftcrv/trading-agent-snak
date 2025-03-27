@@ -2,7 +2,6 @@ export type NetworkType = 'starknet' | 'evm';
 
 export enum LayerswapConstant {
   DEFAULT_API_BASE_URL = 'https://api.layerswap.io/api/v2',
-  DEFAULT_API_KEY = 'rIIj14K0JTPP2OUrOv3atLw5MYgFYVUXpyGdZ6O+2fi5oJRXhw3G2fVPOYBWBJPvHe6vNKKcxhhhGtaYMlgJVw',
   DEFAULT_POLL_INTERVAL_MS = 10000,
   DEFAULT_MAX_POLL_ATTEMPTS = 30,
   HTTP_STATUS_OK = 200,

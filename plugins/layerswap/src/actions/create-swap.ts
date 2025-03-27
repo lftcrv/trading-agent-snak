@@ -1,7 +1,7 @@
-import { StarknetAgentInterface } from "@agents/index";
-import { CreateSwapParams } from '../schema';
-import { SwapInput, SwapResponseData } from '../types';
-import { LayerswapManager } from './layerswap-manager';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { CreateSwapParams } from "../schema/index.js";
+import { SwapInput } from "../types/index.js";
+import { LayerswapManager } from './layerswap-manager.js';
 
 /**
  * Creates a new swap

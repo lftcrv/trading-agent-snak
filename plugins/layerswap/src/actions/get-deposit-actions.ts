@@ -1,5 +1,5 @@
-import { StarknetAgentInterface } from "@agents/index";
-import { LayerswapManager } from './layerswap-manager';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { LayerswapManager } from "./layerswap-manager.js";
 
 /**
  * Gets deposit actions for a swap

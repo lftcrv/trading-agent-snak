@@ -1,5 +1,5 @@
 // import axios from 'axios';
-// import { StarknetAgentInterface } from "@agents/index";
+// import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 // import { GetAvailableRoutesParams } from '../schema';
 // import { getLayerswapApiKey, getLayerswapBaseUrl } from '../utils/config';
 

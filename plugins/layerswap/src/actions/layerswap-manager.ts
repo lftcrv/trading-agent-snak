@@ -1,16 +1,10 @@
 import axios from 'axios';
-import { StarknetAgentInterface } from "@agents/index";
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { Account, Provider, CallData, uint256 } from 'starknet';
 import { ethers } from 'ethers';
-import {
-  LayerswapConstant,
-  SwapInput,
-  SwapResponse,
-  DepositAction,
-  SwapResponseData,
-} from '../types';
-import { GetSwapQuoteParams } from '../schema';
-import { getLayerswapApiKey, getLayerswapBaseUrl } from '../utils/config';
+import { GetSwapQuoteParams } from '../schema/index.js';
+import { SwapInput, SwapResponse, DepositAction, SwapResponseData } from '../types/index.js';
+import { getLayerswapApiKey, getLayerswapBaseUrl } from '../utils/config.js';
 
 /**
  * Manages Layerswap API interactions for bridging assets
