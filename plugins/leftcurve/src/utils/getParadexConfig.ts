@@ -1,5 +1,5 @@
 import { shortString } from 'starknet';
-import { SystemConfig } from '../interfaces';
+import { SystemConfig } from '../interfaces/index.js';
 
 export function getParadexConfig(): SystemConfig {
   const network = process.env.PARADEX_NETWORK?.toLowerCase();

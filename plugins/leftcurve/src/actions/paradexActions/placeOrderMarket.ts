@@ -1,18 +1,18 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import {
   PlaceOrderMarketParams,
   PlaceOrderParams,
-} from '../../../paradex/interfaces/params';
-import { POService } from '../../../paradex/actions/placeOrderMarket';
+} from '../../../../paradex/src/interfaces/params.js';
+import { POService } from '../../../../paradex/src/actions/placeOrderMarket.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../../../paradex/utils/utils';
-import { authenticate } from '../../../paradex/utils/paradex-ts/api';
-import { getContainerId } from '../../utils/getContainerId';
-import { sendTradingInfo } from '../../utils/sendTradingInfos';
-import { ParadexOrderError } from '../../../paradex/interfaces/errors';
+} from '../../../../paradex/src/utils/utils.js';
+import { authenticate } from '../../../../paradex/src/utils/paradex-ts/api.js';
+import { getContainerId } from '../../utils/getContainerId.js';
+import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
+import { ParadexOrderError } from '../../../../paradex/src/interfaces/errors.js';
 
 export const paradexPlaceOrderMarket = async (
   agent: StarknetAgentInterface,

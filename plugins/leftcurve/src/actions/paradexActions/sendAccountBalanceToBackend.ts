@@ -1,11 +1,16 @@
-import { StarknetAgentInterface } from "src/lib/agent/tools/tools";
-import { BalanceService } from "../../../paradex/actions/fetchAccountBalance";
-import { getParadexConfig } from "../../utils/getParadexConfig";
-import { getAccount, ParadexAuthenticationError } from "../../../paradex/utils/utils";
-import { authenticate } from "../../../paradex/utils/paradex-ts/api";
-import { ParadexBalanceError } from "../../../paradex/interfaces/errors";
-import { sendAccountBalanceData } from "../../utils/sendAccountBalanceData";
-import { getContainerId } from "../../utils/getContainerId";
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { BalanceService } from '../../../../paradex/src/actions/fetchAccountBalance.js';
+import {
+  getAccount,
+  getParadexConfig,
+  ParadexAuthenticationError,
+} from '../../../../paradex/src/utils/utils.js';
+import { ParadexBalanceError } from '../../../../paradex/src/interfaces/errors.js';
+import { sendAccountBalanceData } from '../../utils/sendAccountBalanceData.js';
+
+// import { authenticate } from '../../../../paradex/src/utils/paradex-ts/api.js';
+import { authenticate } from '../../../../paradex/src/utils/paradex-ts/api.js';
+import { getContainerId } from '../../utils/getContainerId.js';
 
 export const sendParadexBalance = async (agent: StarknetAgentInterface) => {
   console.info('Calling sendParadexBalance');
@@ -42,7 +47,6 @@ export const sendParadexBalance = async (agent: StarknetAgentInterface) => {
     console.log('accountBalanceDto', accountBalanceDto);
     await sendAccountBalanceData(accountBalanceDto);
     return true;
-
   } catch (error) {
     if (error instanceof ParadexBalanceError) {
       console.error('Balance error:', error.details || error.message);

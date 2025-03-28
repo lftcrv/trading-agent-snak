@@ -1,11 +1,11 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import {
   GetMarketTradingInfoParams,
   MarketTradingInfoBasic,
   ParadexMarketInfoBasicError,
   SystemConfig,
-} from '../../interfaces';
-import { getParadexConfig } from '../../utils/getParadexConfig';
+} from '../../interfaces/index.js';
+import { getParadexConfig } from '../../utils/getParadexConfig.js';
 
 export class MarketTradingInfoService {
   private formatMarketInfo(market: MarketTradingInfoBasic): string {

@@ -1,4 +1,7 @@
-import { StarknetToolRegistry } from 'src/lib/agent/tools/tools';
+import {
+  StarknetTool,
+  StarknetAgentInterface,
+} from '@starknet-agent-kit/agents';
 import {
   avnuAnalysisSchema,
   cancelOrderSchema,
@@ -9,36 +12,40 @@ import {
   placeOrderMarketSchema,
   walletSchema,
   withdrawFromParadexSchema,
-} from '../schema';
-import { swapSchema } from '../../avnu/schema';
-import { swapTokens } from '../actions/avnuActions/swap';
-import { getAvnuLatestAnalysis } from '../actions/avnuActions/fetchAvnuLatestAnalysis';
-import { getWalletBalances } from '../actions/avnuActions/fetchAvnuBalances';
-import { paradexGetMarketDetails } from '../actions/paradexActions/fetchDetailedParadexMarkets';
-import { paradexGetMarketTradingInfo } from '../actions/paradexActions/fetchBasicParadexMarkets';
-import { paradexCancelOrder } from '../actions/paradexActions/cancelOrder';
-import { paradexPlaceOrderMarket } from '../actions/paradexActions/placeOrderMarket';
-import { paradexPlaceOrderLimit } from '../actions/paradexActions/placeOrderLimit';
+} from '../schema/index.js';
+import { swapSchema } from '../../../avnu//src/schema/index.js';
+import { swapTokens } from '../actions/avnuActions/swap.js';
+import { getAvnuLatestAnalysis } from '../actions/avnuActions/fetchAvnuLatestAnalysis.js';
+import { getWalletBalances } from '../actions/avnuActions/fetchAvnuBalances.js';
+import { paradexGetMarketDetails } from '../actions/paradexActions/fetchDetailedParadexMarkets.js';
+import { paradexGetMarketTradingInfo } from '../actions/paradexActions/fetchBasicParadexMarkets.js';
+import { paradexCancelOrder } from '../actions/paradexActions/cancelOrder.js';
+import { paradexPlaceOrderMarket } from '../actions/paradexActions/placeOrderMarket.js';
+import { paradexPlaceOrderLimit } from '../actions/paradexActions/placeOrderLimit.js';
 import {
   getBalanceSchema,
   getBBOSchema,
   getOpenOrdersSchema,
   getOpenPositionsSchema,
   listMarketsSchema,
-} from '../../paradex/schema';
-import { paradexGetOpenOrders } from '../../paradex/actions/fetchOpenOrders';
-import { paradexGetOpenPositions } from '../../paradex/actions/fetchOpenPositions';
-import { paradexGetBalance } from '../../paradex/actions/fetchAccountBalance';
-import { paradexGetBBO } from '../../paradex/actions/getBBO';
-import { paradexListMarkets } from '../../paradex/actions/listMarketsOnParadex';
-import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis';
-import { depositToParadex } from '../actions/layerswapActions/depositToParadex';
-import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex';
-import { sendParadexBalance } from '../actions/paradexActions/sendAccountBalanceToBackend';
+} from '../../../paradex/src/schema/index.js';
+import { paradexGetOpenOrders } from '../../../paradex/src/actions/fetchOpenOrders.js';
+import { paradexGetOpenPositions } from '../../../paradex/src/actions/fetchOpenPositions.js';
+import { paradexGetBalance } from '../../../paradex/src/actions/fetchAccountBalance.js';
+import { paradexGetBBO } from '../../../paradex/src/actions/getBBO.js';
+// import { paradexListMarkets } from '../../../paradex/src/actions/listMarketsOnParadex.js';
+import { paradexListMarkets } from '../../../paradex/src/actions/listMarketsOnParadex.js';
+import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
+import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
+import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
+import { sendParadexBalance } from '../actions/paradexActions/sendAccountBalanceToBackend.js';
 
-export const registerLeftcurveTools = () => {
-  console.log("registering leftcurve")
-  StarknetToolRegistry.registerTool({
+export const registerTools = (
+  StarknetToolRegistry: StarknetTool[],
+  agent?: StarknetAgentInterface
+) => {
+  console.log('registering leftcurve');
+  StarknetToolRegistry.push({
     name: 'get_avnu_latest_analysis',
     plugins: 'leftcurve',
     description:
@@ -47,7 +54,7 @@ export const registerLeftcurveTools = () => {
     execute: getAvnuLatestAnalysis,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_wallet_balances',
     plugins: 'leftcurve',
     description: 'Get all balances from starket wallet',
@@ -55,7 +62,7 @@ export const registerLeftcurveTools = () => {
     execute: getWalletBalances,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'swap_tokens',
     plugins: 'leftcurve',
     description:
@@ -64,7 +71,7 @@ export const registerLeftcurveTools = () => {
     execute: swapTokens,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_paradex_market_details',
     plugins: 'leftcurve',
     description:
@@ -73,7 +80,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetMarketDetails,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_paradex_market_trading_info',
     plugins: 'leftcurve',
     description:
@@ -82,7 +89,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetMarketTradingInfo,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'place_order_limit_paradex',
     plugins: 'leftcurve',
     description:
@@ -91,7 +98,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexPlaceOrderLimit,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'place_order_market_paradex',
     plugins: 'leftcurve',
     description:
@@ -100,7 +107,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexPlaceOrderMarket,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'cancel_order_paradex',
     plugins: 'leftcurve',
     description:
@@ -109,7 +116,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexCancelOrder,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_open_orders',
     plugins: 'leftcurve',
     description:
@@ -118,7 +125,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetOpenOrders,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_open_positions',
     plugins: 'leftcurve',
     description:
@@ -127,7 +134,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetOpenPositions,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_balance_on_paradex',
     plugins: 'leftcurve',
     description: 'Get account balance on Paradex exchange (USDC)',
@@ -135,23 +142,25 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetBalance,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'send_balance_paradex',
     plugins: 'leftcurve',
-    description: 'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
+    description:
+      'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
     schema: getBalanceSchema,
     execute: sendParadexBalance,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'send_balance_paradex',
     plugins: 'leftcurve',
-    description: 'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
+    description:
+      'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
     schema: getBalanceSchema,
     execute: sendParadexBalance,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_bbo',
     plugins: 'leftcurve',
     description: 'Get Best Bid/Offer data for a specified Paradex market',
@@ -159,7 +168,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexGetBBO,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'list_markets',
     plugins: 'leftcurve',
     description: 'Get a list of all available market symbols on Paradex',
@@ -167,7 +176,7 @@ export const registerLeftcurveTools = () => {
     execute: paradexListMarkets,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'get_analysis_paradex',
     plugins: 'leftcurve',
     description: 'Get the latest analysis of Paradex.',
@@ -175,7 +184,7 @@ export const registerLeftcurveTools = () => {
     execute: getAnalysisParadex,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'deposit_to_paradex',
     plugins: 'leftcurve',
     description: 'Deposit USDC from Starknet to Paradex using Layerswap bridge',
@@ -183,7 +192,7 @@ export const registerLeftcurveTools = () => {
     execute: depositToParadex,
   });
 
-  StarknetToolRegistry.registerTool({
+  StarknetToolRegistry.push({
     name: 'withdraw_from_paradex',
     plugins: 'leftcurve',
     description:

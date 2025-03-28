@@ -316,6 +316,12 @@ importers:
         specifier: workspace:*
         version: link:../../agents
 
+  plugins/leftcurve:
+    devDependencies:
+      '@starknet-agent-kit/agents':
+        specifier: workspace:*
+        version: link:../../agents
+
   plugins/okx:
     devDependencies:
       '@starknet-agent-kit/agents':

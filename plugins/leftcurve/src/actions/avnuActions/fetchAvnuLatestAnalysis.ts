@@ -1,6 +1,6 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { AVNU_ASSETS } from '../../constants';
-import { AssetAnalysis, AvnuAnalysisParams } from '../../types';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { AVNU_ASSETS } from '../../constants/index.js';
+import { AssetAnalysis, AvnuAnalysisParams } from '../../types/index.js';
 
 export class AvnuAnalysisService {
   async fetchAvnuLatestAnalysis(): Promise<AssetAnalysis[]> {

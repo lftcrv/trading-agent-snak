@@ -1,15 +1,16 @@
 import { executeSwap, fetchQuotes, QuoteRequest, Quote } from '@avnu/avnu-sdk';
 import { Account } from 'starknet';
+import { StarknetAgentInterface } from '@agents/index.js';
+import { SwapParams, SwapResult } from '../../types/index.js';
+import { getContainerId } from '../../utils/getContainerId.js';
+import { TokenService } from '../../../../avnu/src/actions/fetchTokens.js';
+import { ApprovalService } from '../../../../avnu/src/actions/approval.js';
+import { DEFAULT_QUOTE_SIZE, SLIPPAGE_PERCENTAGE } from '../../../../avnu/src/constants/index.js';
+import { BigNumber } from '@ethersproject/bignumber';
+import { formatTokenAmount } from '../../utils/format.js';
+import { ContractInteractor } from '@plugins/avnu/src/utils/contractInteractor.js';
 
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { SwapParams, SwapResult } from '../../types';
-import { getContainerId } from '../../utils/getContainerId';
-import { TokenService } from '../../../avnu/actions/fetchTokens';
-import { ApprovalService } from '../../../avnu/actions/approval';
-import {
-  DEFAULT_QUOTE_SIZE,
-  SLIPPAGE_PERCENTAGE,
-} from '../../../avnu/constants';
+
 
 /**
  * Service handling token swap operations using AVNU SDK
@@ -94,7 +95,7 @@ export class SwapService {
       );
 
       const formattedAmount = BigInt(
-        this.agent.contractInteractor.formatTokenAmount(
+          formatTokenAmount(
           params.sellAmount.toString(),
           sellToken.decimals
         )

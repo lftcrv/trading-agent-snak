@@ -1,8 +1,8 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
-import { layerswap_execute_bridge } from '../../../layerswap/actions';
-import { ExecuteBridgeParams } from '../../../layerswap/schema';
-import { getContainerId } from '../../utils/getContainerId';
-import { sendTradingInfo } from '../../utils/sendTradingInfos';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
+import { layerswap_execute_bridge } from '../../../../layerswap/src/actions/execute-bridge.js';
+import { ExecuteBridgeParams } from '../../../../layerswap/dist/schema/index.js';
+import { getContainerId } from '../../utils/getContainerId.js';
+import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 
 export interface WithdrawFromParadexParams {
   amount: number;

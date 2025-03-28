@@ -1,4 +1,4 @@
-import { StarknetAgentInterface } from 'src/lib/agent/tools/tools';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 
 export const getAnalysisParadex = async (agent: StarknetAgentInterface) => {
   try {
