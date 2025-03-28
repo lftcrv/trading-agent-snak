@@ -152,15 +152,6 @@ export const registerTools = (
   });
 
   StarknetToolRegistry.push({
-    name: 'send_balance_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
-    schema: getBalanceSchema,
-    execute: sendParadexBalance,
-  });
-
-  StarknetToolRegistry.push({
     name: 'get_bbo',
     plugins: 'leftcurve',
     description: 'Get Best Bid/Offer data for a specified Paradex market',
