@@ -1,16 +1,16 @@
 import { executeSwap, fetchQuotes, QuoteRequest, Quote } from '@avnu/avnu-sdk';
 import { Account } from 'starknet';
-import { StarknetAgentInterface } from '@agents/index.js';
+import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { SwapParams, SwapResult } from '../../types/index.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 import { TokenService } from '../../../../avnu/src/actions/fetchTokens.js';
 import { ApprovalService } from '../../../../avnu/src/actions/approval.js';
-import { DEFAULT_QUOTE_SIZE, SLIPPAGE_PERCENTAGE } from '../../../../avnu/src/constants/index.js';
-import { BigNumber } from '@ethersproject/bignumber';
-import { formatTokenAmount } from '../../utils/format.js';
-import { ContractInteractor } from '@plugins/avnu/src/utils/contractInteractor.js';
-
-
+import {
+  DEFAULT_QUOTE_SIZE,
+  SLIPPAGE_PERCENTAGE,
+} from '../../../../avnu/src/constants/index.js';
+import { ContractInteractor } from '../../../../avnu/src/utils/contractInteractor.js';
+import { TransactionMonitor } from '../../../../avnu/src/utils/transactionMonitor.js';
 
 /**
  * Service handling token swap operations using AVNU SDK
@@ -84,7 +84,7 @@ export class SwapService {
       await this.initialize();
 
       const account = new Account(
-        this.agent.contractInteractor.provider,
+        this.agent.getProvider(),
         this.walletAddress,
         this.agent.getAccountCredentials().accountPrivateKey
       );
@@ -94,8 +94,11 @@ export class SwapService {
         params.buyTokenSymbol
       );
 
+      const contractInteractor = new ContractInteractor(
+        this.agent.getProvider()
+      );
       const formattedAmount = BigInt(
-          formatTokenAmount(
+        contractInteractor.formatTokenAmount(
           params.sellAmount.toString(),
           sellToken.decimals
         )
@@ -203,13 +206,12 @@ export class SwapService {
    * @returns {Promise<{receipt: any, events: any}>} Transaction receipt and events
    */
   private async monitorSwapStatus(txHash: string) {
-    const receipt = await this.agent.transactionMonitor.waitForTransaction(
+    const transactionMonitor = new TransactionMonitor(this.agent.getProvider());
+    const receipt = await transactionMonitor.waitForTransaction(
       txHash,
       (status) => console.log('Swap status:', status)
     );
-
-    const events =
-      await this.agent.transactionMonitor.getTransactionEvents(txHash);
+    const events = await transactionMonitor.getTransactionEvents(txHash);
     return { receipt, events };
   }
 
