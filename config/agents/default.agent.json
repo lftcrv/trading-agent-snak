@@ -29,6 +29,6 @@
   "chat_id": "sak_guide",
   "external_plugins": [],
   "internal_plugins": [
-    "paradex"
+    "layerswap"
   ]
 }
