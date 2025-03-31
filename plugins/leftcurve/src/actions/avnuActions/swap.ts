@@ -3,14 +3,14 @@ import { Account } from 'starknet';
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { SwapParams, SwapResult } from '../../types/index.js';
 import { getContainerId } from '../../utils/getContainerId.js';
-import { TokenService } from '../../../../avnu/src/actions/fetchTokens.js';
-import { ApprovalService } from '../../../../avnu/src/actions/approval.js';
+import { TokenService } from '@starknet-agent-kit/plugin-avnu/src/actions/fetchTokens.js';
+import { ApprovalService } from '@starknet-agent-kit/plugin-avnu/src/actions/approval.js';
 import {
   DEFAULT_QUOTE_SIZE,
   SLIPPAGE_PERCENTAGE,
-} from '../../../../avnu/src/constants/index.js';
-import { ContractInteractor } from '../../../../avnu/src/utils/contractInteractor.js';
-import { TransactionMonitor } from '../../../../avnu/src/utils/transactionMonitor.js';
+} from '@starknet-agent-kit/plugin-avnu/src/constants/index.js';
+import { ContractInteractor } from '@starknet-agent-kit/plugin-avnu/src/utils/contractInteractor.js';
+import { TransactionMonitor } from '@starknet-agent-kit/plugin-avnu/src/utils/transactionMonitor.js';
 
 /**
  * Service handling token swap operations using AVNU SDK

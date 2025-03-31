@@ -1,5 +1,5 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
-import { getParadexConfig } from '@/utils/getParadexConfig.js';
+import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
 import { MarketDetailsService } from '../paradexActions/fetchDetailedParadexMarkets.js';
 
 /**

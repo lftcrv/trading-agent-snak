@@ -1,6 +1,6 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
-import { layerswap_execute_bridge } from '../../../../layerswap/src/actions/execute-bridge.js';
-import { ExecuteBridgeParams } from '../../../../layerswap/src/schema/index.js';
+import { layerswap_execute_bridge } from '@starknet-agent-kit/plugin-layerswap/src/actions/execute-bridge.js';
+import { ExecuteBridgeParams } from '@starknet-agent-kit/plugin-layerswap/src/schema/index.js';
 
 export interface DepositToParadexParams {
   amount: number;

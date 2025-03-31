@@ -1,15 +1,15 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
-import { CancelOrderParams } from '../../../../paradex/src/interfaces/params.js';
-import { CancelOrderService } from '../../../../paradex/src/actions/cancelOrder.js';
+import { CancelOrderParams } from '@starknet-agent-kit/plugin-paradex/src/interfaces/params.js';
+import { CancelOrderService } from '@starknet-agent-kit/plugin-paradex/src/actions/cancelOrder.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '../../../../paradex/src/utils/utils.js';
-import { authenticate } from '../../../../paradex/src/utils/paradex-ts/api.js';
+} from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
+import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
-import { ParadexCancelError } from '../../../../paradex/src/interfaces/errors.js';
+import { ParadexCancelError } from '@starknet-agent-kit/plugin-paradex/src/interfaces/errors.js';
 
 export const paradexCancelOrder = async (
   agent: StarknetAgentInterface,
