@@ -87,3 +87,8 @@ export const withdrawFromParadexSchema = z.object({
     .optional()
     .describe('Optional reference ID for tracking the transaction'),
 });
+
+export const simulateBuySchema = z.object({
+  market: z.string().describe('The market pair to buy, e.g. "ETH-USDC"'),
+  usdcAmount: z.number().describe('Amount of USDC to spend')
+});

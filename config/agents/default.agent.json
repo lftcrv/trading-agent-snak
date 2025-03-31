@@ -27,22 +27,7 @@
   "interval": 30000,
   "autonomous": true,
   "chat_id": "sak_guide",
-  "mcp": true,
+  "mcp": false,
   "external_plugins": [],
-  "internal_plugins": [
-    "layerswap",
-    "argent",
-    "fibrous",
-    "okx",
-    "braavos",
-    "openzeppelin",
-    "rpc",
-    "transaction",
-    "avnu",
-    "erc20",
-    "erc721",
-    "scarb",
-    "contract",
-    "atlantic"
-  ]
+  "internal_plugins": ["leftcurve"]
 }

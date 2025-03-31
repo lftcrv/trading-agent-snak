@@ -12,7 +12,11 @@
     "clean:all": "pnpm clean && pnpm clean:dist",
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@starknet-agent-kit/plugin-paradex": "workspace:*",
+    "@starknet-agent-kit/plugin-layerswap": "workspace:*",
+    "@starknet-agent-kit/plugin-avnu": "workspace:*"
+  },
   "devDependencies": {
     "@starknet-agent-kit/agents": "workspace:*"
   },

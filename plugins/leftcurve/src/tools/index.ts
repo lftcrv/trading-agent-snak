@@ -1,6 +1,7 @@
 import {
   StarknetTool,
   StarknetAgentInterface,
+  PostgresAdaptater,
 } from '@starknet-agent-kit/agents';
 import {
   avnuAnalysisSchema,
@@ -10,10 +11,11 @@ import {
   getMarketTradingInfoSchema,
   placeOrderLimitSchema,
   placeOrderMarketSchema,
+  simulateBuySchema,
   walletSchema,
   withdrawFromParadexSchema,
 } from '../schema/index.js';
-import { swapSchema } from '../../../avnu//src/schema/index.js';
+import { swapSchema } from '@starknet-agent-kit/plugin-avnu/src/schema/index.js';
 import { swapTokens } from '../actions/avnuActions/swap.js';
 import { getAvnuLatestAnalysis } from '../actions/avnuActions/fetchAvnuLatestAnalysis.js';
 import { getWalletBalances } from '../actions/avnuActions/fetchAvnuBalances.js';
@@ -28,17 +30,61 @@ import {
   getOpenOrdersSchema,
   getOpenPositionsSchema,
   listMarketsSchema,
-} from '../../../paradex/src/schema/index.js';
-import { paradexGetOpenOrders } from '../../../paradex/src/actions/fetchOpenOrders.js';
-import { paradexGetOpenPositions } from '../../../paradex/src/actions/fetchOpenPositions.js';
-import { paradexGetBalance } from '../../../paradex/src/actions/fetchAccountBalance.js';
-import { paradexGetBBO } from '../../../paradex/src/actions/getBBO.js';
-// import { paradexListMarkets } from '../../../paradex/src/actions/listMarketsOnParadex.js';
-import { paradexListMarkets } from '../../../paradex/src/actions/listMarketsOnParadex.js';
+} from '@starknet-agent-kit/plugin-paradex/src/schema/index.js';
+import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenOrders.js';
+import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenPositions.js';
+import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchAccountBalance.js';
+import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/src/actions/getBBO.js';
+// import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
+import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
 import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
 import { sendParadexBalance } from '../actions/paradexActions/sendAccountBalanceToBackend.js';
+import { simulateBuy } from '../actions/portfolio/simulateBuy.js';
+import { initPortfolio } from '../actions/portfolio/initPortfolio.js';
+
+export const initializeTools = async (
+  agent: StarknetAgentInterface
+): Promise<PostgresAdaptater | undefined> => {
+  console.log('🔧 initializeTools called — attempting to create leftcurve_db');
+  await new Promise((resolve) => setTimeout(resolve, 10000)); // Pause 1 second for visibility
+
+  const database = await agent.createDatabase('leftcurve_db');
+  if (!database) {
+    console.error('❌ Could not create or connect to leftcurve_db');
+    return;
+  }
+
+  console.log('✅ Connected to leftcurve_db — attempting to create table');
+
+  const result = await database.createTable({
+    table_name: 'sak_table_portfolio',
+    if_not_exist: false,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['token_symbol', 'VARCHAR(50) NOT NULL'],
+      ['balance', 'NUMERIC(18,8) NOT NULL'],
+    ]),
+  });
+
+  if (result.status === 'error' && result.code === '42P07') {
+    console.log('⚠️ Table sak_table_portfolio already exists; attaching...');
+    database.addExistingTable({
+      table_name: 'sak_table_portfolio',
+      if_not_exist: false,
+      fields: new Map([
+        ['id', 'SERIAL PRIMARY KEY'],
+        ['token_symbol', 'VARCHAR(50) NOT NULL'],
+        ['balance', 'NUMERIC(18,8) NOT NULL'],
+      ]),
+    });
+  } else {
+    console.log('✅ sak_table_portfolio created successfully');
+  }
+
+  return database;
+};
 
 export const registerTools = (
   StarknetToolRegistry: StarknetTool[],
@@ -190,5 +236,22 @@ export const registerTools = (
       'Withdraw USDC from Paradex to Starknet using Layerswap bridge',
     schema: withdrawFromParadexSchema,
     execute: withdrawFromParadex,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'init_portfolio',
+    plugins: 'leftcurve',
+    description:
+      'Initialize a new portfolio with some default tokens/balances (like 1000 USDC).',
+    execute: initPortfolio,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'simulate_buy',
+    plugins: 'leftcurve',
+    description:
+      'Simulate a buy of some token by spending USDC from your local portfolio.',
+    schema: simulateBuySchema,
+    execute: simulateBuy,
   });
 };
