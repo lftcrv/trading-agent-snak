@@ -6,7 +6,7 @@ import { MarketDetailsService } from '../paradexActions/fetchDetailedParadexMark
  * Input for simulateBuy
  */
 export interface SimulateBuyParams {
-  market: string; // e.g. "ETH-USDC"
+  market: string; // e.g. "ETH-USDC-PERP"
   usdcAmount: number; // how much USDC the user wants to spend
 }
 

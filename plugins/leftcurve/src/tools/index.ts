@@ -47,9 +47,6 @@ import { initPortfolio } from '../actions/portfolio/initPortfolio.js';
 export const initializeTools = async (
   agent: StarknetAgentInterface
 ): Promise<PostgresAdaptater | undefined> => {
-  console.log('🔧 initializeTools called — attempting to create leftcurve_db');
-  await new Promise((resolve) => setTimeout(resolve, 10000)); // Pause 1 second for visibility
-
   const database = await agent.createDatabase('leftcurve_db');
   if (!database) {
     console.error('❌ Could not create or connect to leftcurve_db');
@@ -86,11 +83,20 @@ export const initializeTools = async (
   return database;
 };
 
-export const registerTools = (
+export const registerTools = async (
   StarknetToolRegistry: StarknetTool[],
-  agent?: StarknetAgentInterface
+  agent: StarknetAgentInterface
 ) => {
   console.log('registering leftcurve');
+
+  const database_instance = await initializeTools(agent);
+  if (!database_instance) {
+    console.error(
+      '❌ Failed to initialize leftcurve tools (database setup failed)'
+    );
+    return;
+  }
+
   StarknetToolRegistry.push({
     name: 'get_avnu_latest_analysis',
     plugins: 'leftcurve',
@@ -198,14 +204,6 @@ export const registerTools = (
   });
 
   StarknetToolRegistry.push({
-    name: 'get_bbo',
-    plugins: 'leftcurve',
-    description: 'Get Best Bid/Offer data for a specified Paradex market',
-    schema: getBBOSchema,
-    execute: paradexGetBBO,
-  });
-
-  StarknetToolRegistry.push({
     name: 'list_markets',
     plugins: 'leftcurve',
     description: 'Get a list of all available market symbols on Paradex',
@@ -236,6 +234,14 @@ export const registerTools = (
       'Withdraw USDC from Paradex to Starknet using Layerswap bridge',
     schema: withdrawFromParadexSchema,
     execute: withdrawFromParadex,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'get_bbo',
+    plugins: 'paradex',
+    description: 'Fetch Best Bid/Offer (BBO) for a given market.',
+    schema: getBBOSchema,
+    execute: paradexGetBBO,
   });
 
   StarknetToolRegistry.push({
