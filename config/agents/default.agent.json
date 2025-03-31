@@ -30,6 +30,7 @@
   "mcp": true,
   "external_plugins": [],
   "internal_plugins": [
+    "layerswap",
     "argent",
     "fibrous",
     "okx",
