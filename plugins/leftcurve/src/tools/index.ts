@@ -80,6 +80,47 @@ export const initializeTools = async (
     console.log('✅ sak_table_portfolio created successfully');
   }
 
+  // Check if the table is empty
+  try {
+    const countResult = await database.select({
+      FROM: ['sak_table_portfolio'],
+      SELECT: ['COUNT(*) as count'],
+    });
+
+    if (
+      countResult.status === 'success' &&
+      countResult.query &&
+      countResult.query.rows.length > 0
+    ) {
+      const count = parseInt(countResult.query.rows[0].count);
+
+      if (count === 0) {
+        console.log('Table is empty, initializing with 1000 USDC');
+
+        const insertResult = await database.insert({
+          table_name: 'sak_table_portfolio',
+          fields: new Map([
+            ['token_symbol', 'USDC'],
+            ['balance', '1000.00000000'],
+          ]),
+        });
+
+        if (insertResult.status === 'success') {
+          console.log('✅ Portfolio initialized with 1000 USDC');
+        } else {
+          console.error(
+            '❌ Failed to initialize portfolio with USDC:',
+            insertResult
+          );
+        }
+      } else {
+        console.log(`Table already has ${count} rows, skipping initialization`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error checking table content:', error);
+  }
+
   return database;
 };
 
@@ -97,31 +138,31 @@ export const registerTools = async (
     return;
   }
 
-  StarknetToolRegistry.push({
-    name: 'get_avnu_latest_analysis',
-    plugins: 'leftcurve',
-    description:
-      'Get the latest market analysis. Use it to deicde what is the best swap to do.',
-    schema: avnuAnalysisSchema,
-    execute: getAvnuLatestAnalysis,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'get_avnu_latest_analysis',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Get the latest market analysis. Use it to deicde what is the best swap to do.',
+  //   schema: avnuAnalysisSchema,
+  //   execute: getAvnuLatestAnalysis,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'get_wallet_balances',
-    plugins: 'leftcurve',
-    description: 'Get all balances from starket wallet',
-    schema: walletSchema,
-    execute: getWalletBalances,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'get_wallet_balances',
+  //   plugins: 'leftcurve',
+  //   description: 'Get all balances from starket wallet',
+  //   schema: walletSchema,
+  //   execute: getWalletBalances,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'swap_tokens',
-    plugins: 'leftcurve',
-    description:
-      'Swap a specified amount of one token for another token, on AVNU',
-    schema: swapSchema,
-    execute: swapTokens,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'swap_tokens',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Swap a specified amount of one token for another token, on AVNU',
+  //   schema: swapSchema,
+  //   execute: swapTokens,
+  // });
 
   StarknetToolRegistry.push({
     name: 'get_paradex_market_details',
@@ -141,67 +182,67 @@ export const registerTools = async (
     execute: paradexGetMarketTradingInfo,
   });
 
-  StarknetToolRegistry.push({
-    name: 'place_order_limit_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Place an order limit on Paradex exchange. Base you on paradex analysis and your paradex positions to decide if you should use this action',
-    schema: placeOrderLimitSchema,
-    execute: paradexPlaceOrderLimit,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'place_order_limit_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Place an order limit on Paradex exchange. Base you on paradex analysis and your paradex positions to decide if you should use this action',
+  //   schema: placeOrderLimitSchema,
+  //   execute: paradexPlaceOrderLimit,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'place_order_market_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Place an order market on Paradex exchange. Base you on paradex analysis to decide if you should use this action',
-    schema: placeOrderMarketSchema,
-    execute: paradexPlaceOrderMarket,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'place_order_market_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Place an order market on Paradex exchange. Base you on paradex analysis to decide if you should use this action',
+  //   schema: placeOrderMarketSchema,
+  //   execute: paradexPlaceOrderMarket,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'cancel_order_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Cancel an unexecuted order (not yet filled) on Paradex exchange without affecting the position or the asset balance',
-    schema: cancelOrderSchema,
-    execute: paradexCancelOrder,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'cancel_order_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Cancel an unexecuted order (not yet filled) on Paradex exchange without affecting the position or the asset balance',
+  //   schema: cancelOrderSchema,
+  //   execute: paradexCancelOrder,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'get_open_orders',
-    plugins: 'leftcurve',
-    description:
-      'Get all open orders on Paradex exchange, optionally filtered by market',
-    schema: getOpenOrdersSchema,
-    execute: paradexGetOpenOrders,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'get_open_orders',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Get all open orders on Paradex exchange, optionally filtered by market',
+  //   schema: getOpenOrdersSchema,
+  //   execute: paradexGetOpenOrders,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'get_open_positions',
-    plugins: 'leftcurve',
-    description:
-      'Get all open positions on Paradex exchange, optionally filtered by market',
-    schema: getOpenPositionsSchema,
-    execute: paradexGetOpenPositions,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'get_open_positions',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Get all open positions on Paradex exchange, optionally filtered by market',
+  //   schema: getOpenPositionsSchema,
+  //   execute: paradexGetOpenPositions,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'get_balance_on_paradex',
-    plugins: 'leftcurve',
-    description: 'Get account balance on Paradex exchange (USDC)',
-    schema: getBalanceSchema,
-    execute: paradexGetBalance,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'get_balance_on_paradex',
+  //   plugins: 'leftcurve',
+  //   description: 'Get account balance on Paradex exchange (USDC)',
+  //   schema: getBalanceSchema,
+  //   execute: paradexGetBalance,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'send_balance_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
-    schema: getBalanceSchema,
-    execute: sendParadexBalance,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'send_balance_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
+  //   schema: getBalanceSchema,
+  //   execute: sendParadexBalance,
+  // });
 
   StarknetToolRegistry.push({
     name: 'list_markets',
@@ -219,22 +260,22 @@ export const registerTools = async (
     execute: getAnalysisParadex,
   });
 
-  StarknetToolRegistry.push({
-    name: 'deposit_to_paradex',
-    plugins: 'leftcurve',
-    description: 'Deposit USDC from Starknet to Paradex using Layerswap bridge',
-    schema: depositToParadexSchema,
-    execute: depositToParadex,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'deposit_to_paradex',
+  //   plugins: 'leftcurve',
+  //   description: 'Deposit USDC from Starknet to Paradex using Layerswap bridge',
+  //   schema: depositToParadexSchema,
+  //   execute: depositToParadex,
+  // });
 
-  StarknetToolRegistry.push({
-    name: 'withdraw_from_paradex',
-    plugins: 'leftcurve',
-    description:
-      'Withdraw USDC from Paradex to Starknet using Layerswap bridge',
-    schema: withdrawFromParadexSchema,
-    execute: withdrawFromParadex,
-  });
+  // StarknetToolRegistry.push({
+  //   name: 'withdraw_from_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Withdraw USDC from Paradex to Starknet using Layerswap bridge',
+  //   schema: withdrawFromParadexSchema,
+  //   execute: withdrawFromParadex,
+  // });
 
   StarknetToolRegistry.push({
     name: 'get_bbo',
@@ -247,7 +288,8 @@ export const registerTools = async (
   StarknetToolRegistry.push({
     name: 'simulate_trade',
     plugins: 'leftcurve',
-    description: 'Simulate trading one token from your portfolio for another token, using BBO data for conversion to/from USDC.',
+    description:
+      'Simulate trading one token from your portfolio for another token, using BBO data for conversion to/from USDC.',
     schema: simulateTradeSchema,
     execute: simulateTrade,
   });
