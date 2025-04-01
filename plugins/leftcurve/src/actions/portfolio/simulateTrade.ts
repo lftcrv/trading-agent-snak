@@ -1,21 +1,18 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { BBOService } from '../paradexActions/getBBO.js';
 import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
+import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
+import { getContainerId } from '../../utils/getContainerId.js';
 
-/**
- * Input parameters to trade from one token to another
- */
 export interface SimulateTradeParams {
   fromToken: string; // e.g. "ETH"
   toToken: string; // e.g. "MKR"
   fromAmount: number; // how much of 'fromToken' to trade
+  explanation?: string; // explanation of the trade decision
 }
 
 /**
- * Convert fromToken -> USDC -> toToken using best bid/ask
- *
- * 1. Sell 'fromToken' to get USDC, using BBO's best BID for fromToken-USD-PERP
- * 2. Buy 'toToken' with that USDC, using BBO's best ASK for toToken-USD-PERP
+ * Input parameters to trade from one token to another
  */
 export const simulateTrade = async (
   agent: StarknetAgentInterface,
@@ -86,7 +83,13 @@ export const simulateTrade = async (
       await db.query(updateFromQuery);
     }
 
+    let toTokenAmount = 0;
+    let finalPrice = 0;
+
     if (params.toToken.toUpperCase() === 'USDC') {
+      toTokenAmount = usdcAmount;
+      finalPrice = 1; // 1:1 for USDC
+
       const usdcRow = await db.select({
         FROM: ['sak_table_portfolio'],
         SELECT: ['id', 'token_symbol', 'balance'],
@@ -116,6 +119,32 @@ export const simulateTrade = async (
       const msg = `Sold ${params.fromAmount} ${params.fromToken} => got ${usdcAmount.toFixed(
         4
       )} USDC. (No need to buy since toToken=USDC)`;
+
+      // Send trading info with explanation
+      const tradeObject = {
+        tradeId: Date.now().toString(),
+        tradeType: 'simulateTrade',
+        trade: {
+          fromToken: params.fromToken,
+          toToken: params.toToken,
+          fromAmount: params.fromAmount,
+          toAmount: toTokenAmount,
+          price: finalPrice,
+          explanation: params.explanation || 'No explanation provided',
+        },
+      };
+
+      const tradingInfoDto = {
+        runtimeAgentId: getContainerId(),
+        information: tradeObject,
+      };
+
+      await sendTradingInfo(tradingInfoDto);
+
+      if (params.explanation) {
+        console.log('explanation:', params.explanation);
+      }
+
       return { success: true, message: msg };
     }
 
@@ -136,7 +165,8 @@ export const simulateTrade = async (
     }
 
     // => how many tokens we can buy
-    const tokensToBuy = usdcAmount / bestAsk;
+    toTokenAmount = usdcAmount / bestAsk;
+    finalPrice = bestAsk;
 
     // Insert/update row for toToken
     const tokenResult = await db.select({
@@ -152,7 +182,7 @@ export const simulateTrade = async (
     ) {
       // Already have a row => sum up
       const currentTokenBalance = Number(tokenResult.query.rows[0].balance);
-      const updatedTokenBalance = currentTokenBalance + tokensToBuy;
+      const updatedTokenBalance = currentTokenBalance + toTokenAmount;
 
       const updateTokenQuery = `UPDATE sak_table_portfolio SET balance = ${updatedTokenBalance.toFixed(8)} WHERE token_symbol = '${params.toToken}'`;
       await db.query(updateTokenQuery);
@@ -161,21 +191,42 @@ export const simulateTrade = async (
         table_name: 'sak_table_portfolio',
         fields: new Map([
           ['token_symbol', params.toToken],
-          ['balance', tokensToBuy.toFixed(8)],
+          ['balance', toTokenAmount.toFixed(8)],
         ]),
       });
     }
 
     const msg = `Traded ${params.fromAmount} ${params.fromToken} => got ${usdcAmount.toFixed(
       4
-    )} USDC => bought ${tokensToBuy.toFixed(
+    )} USDC => bought ${toTokenAmount.toFixed(
       6
     )} ${params.toToken} @ ask ${bestAsk.toFixed(2)} USDC`;
 
-    const debugRows = await db.select({
-      FROM: ['sak_table_portfolio'],
-      SELECT: ['token_symbol', 'balance'],
-    });
+    // Send trading info with explanation
+    const tradeObject = {
+      tradeId: Date.now().toString(),
+      tradeType: 'simulateTrade',
+      trade: {
+        fromToken: params.fromToken,
+        toToken: params.toToken,
+        fromAmount: params.fromAmount,
+        toAmount: toTokenAmount,
+        price: finalPrice,
+        explanation: params.explanation || 'No explanation provided',
+      },
+    };
+
+    const tradingInfoDto = {
+      runtimeAgentId: getContainerId(),
+      information: tradeObject,
+    };
+
+    await sendTradingInfo(tradingInfoDto);
+
+    if (params.explanation) {
+      console.log('explanation:', params.explanation);
+    }
+
     return { success: true, message: msg };
   } catch (error) {
     console.error('❌ Error in simulateTrade:', error);

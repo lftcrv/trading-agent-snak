@@ -89,7 +89,15 @@ export const withdrawFromParadexSchema = z.object({
 });
 
 export const simulateTradeSchema = z.object({
-  fromToken: z.string(),
-  toToken: z.string(),
-  fromAmount: z.number(),
+  fromToken: z.string().describe('The token to sell/trade from'),
+  toToken: z.string().describe('The token to buy/trade to'),
+  fromAmount: z
+    .number()
+    .positive()
+    .describe('The amount of fromToken to trade'),
+  explanation: z
+    .string()
+    .describe(
+      'Explanation of the trade decision as a trader. Express yourself according to your personality, your bio, and your lore. Give deep specific details about what leads to your decision to trade this specific asset at this specific time, according to your data, market conditions, ...'
+    ),
 });
