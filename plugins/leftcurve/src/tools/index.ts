@@ -11,7 +11,7 @@ import {
   getMarketTradingInfoSchema,
   placeOrderLimitSchema,
   placeOrderMarketSchema,
-  simulateBuySchema,
+  simulateTradeSchema,
   walletSchema,
   withdrawFromParadexSchema,
 } from '../schema/index.js';
@@ -41,8 +41,8 @@ import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalys
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
 import { sendParadexBalance } from '../actions/paradexActions/sendAccountBalanceToBackend.js';
-import { simulateBuy } from '../actions/portfolio/simulateBuy.js';
-import { initPortfolio } from '../actions/portfolio/initPortfolio.js';
+import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
+import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -245,19 +245,18 @@ export const registerTools = async (
   });
 
   StarknetToolRegistry.push({
-    name: 'init_portfolio',
+    name: 'simulate_trade',
     plugins: 'leftcurve',
-    description:
-      'Initialize a new portfolio with some default tokens/balances (like 1000 USDC).',
-    execute: initPortfolio,
+    description: 'Simulate trading one token from your portfolio for another token, using BBO data for conversion to/from USDC.',
+    schema: simulateTradeSchema,
+    execute: simulateTrade,
   });
 
   StarknetToolRegistry.push({
-    name: 'simulate_buy',
+    name: 'print_portfolio',
     plugins: 'leftcurve',
     description:
-      'Simulate a buy of some token by spending USDC from your local portfolio.',
-    schema: simulateBuySchema,
-    execute: simulateBuy,
+      'Prints the current simulated portfolio with token balances in a nice table',
+    execute: printPortfolio,
   });
 };
