@@ -136,7 +136,7 @@ export const paradexGetBBO = async (
     }
 
     const formattedResponse = service.formatBBOResponse(bboDataMap);
-    console.log(formattedResponse.text);
+    console.log(" Get BBO:", formattedResponse.text);
 
     return {
       success: true,
