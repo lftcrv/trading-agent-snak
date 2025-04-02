@@ -48,3 +48,5 @@ tsconfig.build.tsbuildinfo
 tsconfig.tsbuildinfo
 
 *.tgz
+
+.docker
