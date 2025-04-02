@@ -1,4 +1,4 @@
-export const sendAccountBalanceData = async (accountBalanceDto: any): Promise<void> => {
+export const sendParadexAccountBalanceData = async (accountBalanceDto: any): Promise<void> => {
     try {
       const backendPort = process.env.BACKEND_PORT || '8080';
       const isLocal = process.env.LOCAL_DEVELOPMENT === 'TRUE';
