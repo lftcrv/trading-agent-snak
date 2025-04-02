@@ -37,7 +37,7 @@ RUN pnpm install --frozen-lockfile
 # Copy application code
 COPY . .
 # Build the project
-RUN pnpm run build:backend && pnpm prune --prod
+RUN pnpm run build && pnpm prune --prod
 
 # Build Python dependencies directly in the correct location
 FROM python:3.11-slim AS python-deps
@@ -114,7 +114,9 @@ ENV PYTHONPATH="/app/scripts/paradex-python/.venv/lib/python3.11/site-packages:$
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/agents/dist ./agents/dist
+COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/plugins/*/dist ./plugins/
 COPY --from=builder /app/client ./client
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/scripts ./scripts

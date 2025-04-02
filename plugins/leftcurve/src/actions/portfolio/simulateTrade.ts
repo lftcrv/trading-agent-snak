@@ -1,6 +1,6 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { BBOService } from '../paradexActions/getBBO.js';
-import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
+import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 

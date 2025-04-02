@@ -85,8 +85,15 @@ export const registerTools = async (
   try {
     await Promise.all(
       allowed_tools.map(async (toolName) => {
+        // For local usage, use this import
+        // const localPath = new URL(
+        //   `../../../plugins/${toolName}/dist/index.js`,
+        //   import.meta.url
+        // ).href;
+
+        // For server mode, use this import
         const localPath = new URL(
-          `../../../plugins/${toolName}/dist/index.js`,
+          `../../../../plugins/${toolName}/dist/index.js`,
           import.meta.url
         ).href;
 

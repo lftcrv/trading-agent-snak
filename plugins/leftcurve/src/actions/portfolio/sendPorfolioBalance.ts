@@ -32,7 +32,7 @@ export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
     // Convert everything to USD value using BBO data
     const tokens = portfolioResult.query.rows;
     const { getParadexConfig } = await import(
-      '@starknet-agent-kit/plugin-paradex/src/utils/utils.js'
+      '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js'
     );
     const { BBOService } = await import('../paradexActions/getBBO.js');
 

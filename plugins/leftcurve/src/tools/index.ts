@@ -24,19 +24,27 @@ import { paradexGetMarketTradingInfo } from '../actions/paradexActions/fetchBasi
 import { paradexCancelOrder } from '../actions/paradexActions/cancelOrder.js';
 import { paradexPlaceOrderMarket } from '../actions/paradexActions/placeOrderMarket.js';
 import { paradexPlaceOrderLimit } from '../actions/paradexActions/placeOrderLimit.js';
-import {
-  getBalanceSchema,
-  getBBOSchema,
-  getOpenOrdersSchema,
-  getOpenPositionsSchema,
-  listMarketsSchema,
-} from '@starknet-agent-kit/plugin-paradex/src/schema/index.js';
-import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenOrders.js';
-import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenPositions.js';
-import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchAccountBalance.js';
-import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/src/actions/getBBO.js';
-// import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
-import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
+// import {
+//   getBalanceSchema,
+//   getBBOSchema,
+//   getOpenOrdersSchema,
+//   getOpenPositionsSchema,
+//   listMarketsSchema,
+// } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
+
+import { 
+    getBalanceSchema,
+    getBBOSchema,
+    getOpenOrdersSchema,
+    getOpenPositionsSchema,
+    listMarketsSchema,
+   } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
+import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenOrders.js';
+import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenPositions.js';
+import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchAccountBalance.js';
+import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/dist/actions/getBBO.js';
+// import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
+import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
 import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';

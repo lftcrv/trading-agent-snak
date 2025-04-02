@@ -2,17 +2,17 @@ import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import {
   PlaceOrderLimitParams,
   PlaceOrderParams
-} from '@starknet-agent-kit/plugin-paradex/src/interfaces/params.js';
-import { POService } from '@starknet-agent-kit/plugin-paradex/src/actions/placeOrderMarket.js';
+} from '@starknet-agent-kit/plugin-paradex/dist/interfaces/params.js';
+import { POService } from '@starknet-agent-kit/plugin-paradex/dist/actions/placeOrderMarket.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
-import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
+} from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
+import { authenticate } from '@starknet-agent-kit/plugin-paradex/dist/utils/paradex-ts/api.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
-import { ParadexOrderError } from '@starknet-agent-kit/plugin-paradex/src/interfaces/errors.js';
+import { ParadexOrderError } from '@starknet-agent-kit/plugin-paradex/dist/interfaces/errors.js';
 
 export const paradexPlaceOrderLimit = async (
   agent: StarknetAgentInterface,

@@ -1,15 +1,15 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
-import { BalanceService } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchAccountBalance.js';
+import { BalanceService } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchAccountBalance.js';
 import {
   getAccount,
   getParadexConfig,
   ParadexAuthenticationError,
-} from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
-import { ParadexBalanceError } from '@starknet-agent-kit/plugin-paradex/src/interfaces/errors.js';
+} from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
+import { ParadexBalanceError } from '@starknet-agent-kit/plugin-paradex/dist/interfaces/errors.js';
 import { sendParadexAccountBalanceData } from '../../utils/sendParadexAccountBalanceData.js';
 
-// import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
-import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
+// import { authenticate } from '@starknet-agent-kit/plugin-paradex/dist/utils/paradex-ts/api.js';
+import { authenticate } from '@starknet-agent-kit/plugin-paradex/dist/utils/paradex-ts/api.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 
 export const sendParadexBalance = async (agent: StarknetAgentInterface) => {
