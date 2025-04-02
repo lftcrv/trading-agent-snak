@@ -3,12 +3,12 @@ import { sendPortfolioData } from '../../utils/sendPortfolioData.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 
 /**
- * Sends the total portfolio balance to the backend
+ * Sends the total portfolio balance with token details to the backend KPI endpoint
  * Calculates the total value in USD of all tokens in the portfolio
  */
 export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
   try {
-    console.log('🚀 Starting sendPortfolioBalance');
+    console.log('🚀 Starting sendPortfolioBalance with token tracking');
 
     const db = await agent.getDatabaseByName('leftcurve_db');
     if (!db) {
@@ -40,13 +40,16 @@ export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
     const bboService = new BBOService();
     const config = await getParadexConfig();
 
-    // Process each token
+    // Process each token and calculate its USD value
+    const tokenDetails = [];
     for (const token of tokens) {
       const symbol = token.token_symbol;
       const balance = Number(token.balance);
+      let price = 0;
 
       if (symbol === 'USDC') {
         // USDC is already in USD
+        price = 1;
         totalUsdValue += balance;
       } else {
         try {
@@ -56,11 +59,11 @@ export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
 
           if (bboData?.bid) {
             // Use the bid price (what you could sell for)
-            const bidPrice = parseFloat(bboData.bid);
-            const tokenUsdValue = balance * bidPrice;
+            price = parseFloat(bboData.bid);
+            const tokenUsdValue = balance * price;
             totalUsdValue += tokenUsdValue;
             console.log(
-              `Token ${symbol}: ${balance} * ${bidPrice} = ${tokenUsdValue.toFixed(2)}`
+              `Token ${symbol}: ${balance} * $${price} = $${tokenUsdValue.toFixed(2)}`
             );
           } else {
             console.warn(
@@ -71,60 +74,42 @@ export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
           console.warn(`Error getting price for ${symbol}:`, error);
         }
       }
+
+      tokenDetails.push({
+        symbol,
+        balance,
+        price,
+      });
     }
 
-    // Create a portfolio summary with all tokens including USD values
-    const portfolioSummary = await Promise.all(
-      tokens.map(async (token) => {
-        const symbol = token.token_symbol;
-        const balance = Number(token.balance);
+    // Format details for logging
+    const tokenSummary = tokenDetails
+      .map(
+        (token) =>
+          `${token.symbol}: ${token.balance.toFixed(4)} (= $${(token.balance * token.price).toFixed(2)} @ $${token.price.toFixed(2)})`
+      )
+      .join(', ');
 
-        let usdValue = balance;
-        let price = 1;
+    console.log(`Portfolio: ${tokenSummary}`);
+    console.log(`Total USD Value: $${totalUsdValue.toFixed(2)}`);
 
-        if (symbol !== 'USDC') {
-          try {
-            // Get market price for non-USDC tokens
-            const market = `${symbol}-USD-PERP`;
-            const bboData = await bboService.fetchMarketBBO(config, market);
-
-            if (bboData?.bid) {
-              price = parseFloat(bboData.bid);
-              usdValue = balance * price;
-            }
-          } catch (error) {
-            console.warn(`Error getting USD value for ${symbol}`);
-          }
-        }
-
-        return {
-          symbol: symbol,
-          balance: balance,
-          usdValue: usdValue,
-          price: price,
-        };
-      })
-    );
-
-    // Create the DTO for sending to backend
+    // Create DTO for enhanced backend - now includes token details
     const portfolioBalanceDto = {
       runtimeAgentId: getContainerId(),
       balanceInUSD: totalUsdValue,
-      metadata: {
-        timestamp: new Date().toISOString(),
-        portfolio: portfolioSummary,
-      },
+      tokens: tokenDetails,
     };
-
-    console.log('Sending portfolio balance to backend:', portfolioBalanceDto);
 
     // Send to backend
     await sendPortfolioData(portfolioBalanceDto);
 
     return {
       success: true,
-      data: portfolioBalanceDto,
-      text: `Successfully sent portfolio balance to backend. Total USD value: ${totalUsdValue.toFixed(2)}`,
+      data: {
+        totalUsdValue,
+        tokens: tokenDetails,
+      },
+      text: `Successfully sent portfolio balance of $${totalUsdValue.toFixed(2)} USD to backend with tokens: ${tokenSummary}`,
     };
   } catch (error) {
     console.error('❌ Error in sendPortfolioBalance:', error);
