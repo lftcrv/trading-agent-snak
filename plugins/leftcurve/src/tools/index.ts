@@ -40,9 +40,10 @@ import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actio
 import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
-import { sendParadexBalance } from '../actions/paradexActions/sendAccountBalanceToBackend.js';
+import { sendParadexBalance } from '../actions/paradexActions/sendParadexAccountBalanceToBackend.js';
 import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
 import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
+import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -300,5 +301,22 @@ export const registerTools = async (
     description:
       'Prints the current simulated portfolio with token balances in a nice table',
     execute: printPortfolio,
+  });
+
+  // StarknetToolRegistry.push({
+  //   name: 'send_balance_paradex',
+  //   plugins: 'leftcurve',
+  //   description:
+  //     'Always sends your Paradex balance to the backend with this function after any action on Paradex.',
+  //   schema: getBalanceSchema,
+  //   execute: sendParadexBalance,
+  // });
+
+  StarknetToolRegistry.push({
+    name: 'send_portfolio_balance',
+    plugins: 'leftcurve',
+    description:
+      'Always sends your total Portfolio balance to the backend with this function after any trade simulated.',
+    execute: sendPortfolioBalance,
   });
 };

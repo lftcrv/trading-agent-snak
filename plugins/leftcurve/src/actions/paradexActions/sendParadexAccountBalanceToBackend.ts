@@ -6,7 +6,7 @@ import {
   ParadexAuthenticationError,
 } from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
 import { ParadexBalanceError } from '@starknet-agent-kit/plugin-paradex/src/interfaces/errors.js';
-import { sendAccountBalanceData } from '../../utils/sendAccountBalanceData.js';
+import { sendParadexAccountBalanceData } from '../../utils/sendParadexAccountBalanceData.js';
 
 // import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
 import { authenticate } from '@starknet-agent-kit/plugin-paradex/src/utils/paradex-ts/api.js';
@@ -45,7 +45,7 @@ export const sendParadexBalance = async (agent: StarknetAgentInterface) => {
     };
     console.info('accountBalanceDto', accountBalanceDto);
     console.log('accountBalanceDto', accountBalanceDto);
-    await sendAccountBalanceData(accountBalanceDto);
+    await sendParadexAccountBalanceData(accountBalanceDto);
     return true;
   } catch (error) {
     if (error instanceof ParadexBalanceError) {
