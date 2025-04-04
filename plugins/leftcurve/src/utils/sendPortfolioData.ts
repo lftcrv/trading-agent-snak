@@ -6,7 +6,7 @@ export const sendPortfolioData = async (
 ): Promise<void> => {
   try {
     const backendPort = process.env.BACKEND_PORT || '8080';
-    const host = process.env.HOST_BACKEND;
+    const host = process.env.AGENT_HOST_BACKEND;
     const apiKey = process.env.BACKEND_API_KEY;
 
     console.log(

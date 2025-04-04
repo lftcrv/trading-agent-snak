@@ -7,7 +7,7 @@ export class AvnuAnalysisService {
     const assetsParam = AVNU_ASSETS.join(',');
     const apiKey = process.env.BACKEND_API_KEY;
     const backendPort = process.env.BACKEND_PORT || '8080';
-    const host = process.env.HOST_BACKEND;
+    const host = process.env.AGENT_HOST_BACKEND;
     console.log(
       'URL : ',
       `http://${host}:${backendPort}/analysis/latest?assets=${assetsParam}&platform=avnu`
