@@ -40,6 +40,8 @@ export const RegisterSignatureTools = async (
             `@starknet-agent-kit/plugin-${tool}/dist/index.js`,
             `../../plugins/${tool}/dist/index.js`,
             `../../../plugins/${tool}/dist/index.js`,
+            `file:///app/plugins/${tool}/dist/index.js`,
+            `../../../../plugins/${tool}/dist/index.js`,
           ];
 
           let imported_tool = null;
@@ -47,7 +49,11 @@ export const RegisterSignatureTools = async (
             try {
               imported_tool = await import(path);
               break;
-            } catch {}
+            } catch (error) {
+              console.warn(
+                `Failed to import plugin ${tool} from path: ${path}. Error: ${error.message}`
+              );
+            }
           }
 
           if (!imported_tool) {

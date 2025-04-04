@@ -29,6 +29,9 @@
     "langchain": "^0.3.10",
     "discord.js": "^14.17.3",
     "nanospinner": "^1.2.2",
-    "inquirer": "^12.4.1"
+    "inquirer": "^12.4.1",
+    "twitter-api-v2": "^1.19.1",
+    "agent-twitter-client": "^0.0.18",
+    "node-telegram-bot-api": "^0.66.0"
   }
 }

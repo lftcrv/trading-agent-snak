@@ -67,7 +67,7 @@ run)
     CMD="$CMD -d --name starknet-agent-kit starknet-agent-kit"
 
     # Add startup command - using only backend
-    CMD="$CMD sh -c 'pnpm start:server'"
+    CMD="$CMD sh -c 'pnpm start:serverprod'"
 
     # Print the command (optional, for debugging)
     echo "Executing: $CMD"

@@ -18,7 +18,7 @@ if [ "$1" == "--frontend-only" ]; then
     cd client && pnpm start
 elif [ "$1" == "--backend-only" ]; then
     echo -e "${BLUE}Starting backend production server...${NC}"
-    pnpm start:server
+    pnpm start:serverprod
 else
     echo -e "${BLUE}Starting production servers...${NC}"
     pnpm start

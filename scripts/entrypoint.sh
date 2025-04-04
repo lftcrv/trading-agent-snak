@@ -30,4 +30,4 @@ fi
 
 # Start the backend application
 log "🚀 Starting backend application..."
-exec pnpm start:server
+exec pnpm start:serverprod
