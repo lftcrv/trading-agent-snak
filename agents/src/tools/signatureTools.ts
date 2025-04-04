@@ -49,11 +49,7 @@ export const RegisterSignatureTools = async (
             try {
               imported_tool = await import(path);
               break;
-            } catch (error) {
-              console.warn(
-                `Failed to import plugin ${tool} from path: ${path}. Error: ${error.message}`
-              );
-            }
+            } catch (error) {}
           }
 
           if (!imported_tool) {
