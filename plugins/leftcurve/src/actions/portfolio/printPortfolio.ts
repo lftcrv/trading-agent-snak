@@ -1,9 +1,12 @@
+import { getContainerId } from '../../utils/getContainerId.js';
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 
 export const printPortfolio = async (agent: StarknetAgentInterface) => {
   try {
-    const db = await agent.getDatabaseByName('leftcurve_db');
-    if (!db) throw new Error('leftcurve_db not found');
+    const containerId = getContainerId();
+
+    const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
+    if (!db) throw new Error(`leftcurve_db_${containerId} not found`);
 
     const result = await db.select({
       FROM: ['sak_table_portfolio'],

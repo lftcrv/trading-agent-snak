@@ -24,19 +24,27 @@ import { paradexGetMarketTradingInfo } from '../actions/paradexActions/fetchBasi
 import { paradexCancelOrder } from '../actions/paradexActions/cancelOrder.js';
 import { paradexPlaceOrderMarket } from '../actions/paradexActions/placeOrderMarket.js';
 import { paradexPlaceOrderLimit } from '../actions/paradexActions/placeOrderLimit.js';
-import {
-  getBalanceSchema,
-  getBBOSchema,
-  getOpenOrdersSchema,
-  getOpenPositionsSchema,
-  listMarketsSchema,
-} from '@starknet-agent-kit/plugin-paradex/src/schema/index.js';
-import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenOrders.js';
-import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchOpenPositions.js';
-import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/src/actions/fetchAccountBalance.js';
-import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/src/actions/getBBO.js';
-// import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
-import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/src/actions/listMarketsOnParadex.js';
+// import {
+//   getBalanceSchema,
+//   getBBOSchema,
+//   getOpenOrdersSchema,
+//   getOpenPositionsSchema,
+//   listMarketsSchema,
+// } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
+
+import { 
+    getBalanceSchema,
+    getBBOSchema,
+    getOpenOrdersSchema,
+    getOpenPositionsSchema,
+    listMarketsSchema,
+   } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
+import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenOrders.js';
+import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenPositions.js';
+import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchAccountBalance.js';
+import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/dist/actions/getBBO.js';
+// import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
+import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
 import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
@@ -44,17 +52,21 @@ import { sendParadexBalance } from '../actions/paradexActions/sendParadexAccount
 import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
 import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
+import { getContainerId } from '../utils/getContainerId.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
 ): Promise<PostgresAdaptater | undefined> => {
-  const database = await agent.createDatabase('leftcurve_db');
+  const containerId = getContainerId();
+  const dbName = `leftcurve_db_${containerId}`;
+  
+  const database = await agent.createDatabase(dbName);
   if (!database) {
-    console.error('❌ Could not create or connect to leftcurve_db');
+    console.error(`❌ Could not create or connect to leftcurve_db_${containerId}`);
     return;
   }
 
-  console.log('✅ Connected to leftcurve_db — attempting to create table');
+  console.log(`✅ Connected to leftcurve_db_${containerId} — attempting to create table`);
 
   const result = await database.createTable({
     table_name: 'sak_table_portfolio',

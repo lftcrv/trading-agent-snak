@@ -3,7 +3,7 @@ import { SystemConfig } from '../../interfaces/config.js';
 import { ParadexBBOError } from '../../interfaces/errors.js';
 import { GetBBOParams } from '../../interfaces/params.js';
 import { BBOResponse, MarketMetrics } from '../../interfaces/results.js';
-import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/src/utils/utils.js';
+import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
 
 export class BBOService {
   private formatNumber(value: string, decimals: number = 2): string {
