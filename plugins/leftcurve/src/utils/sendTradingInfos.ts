@@ -1,8 +1,7 @@
 export const sendTradingInfo = async (tradingInfoDto: any): Promise<void> => {
   try {
     const backendPort = process.env.BACKEND_PORT || '8080';
-    const isLocal = process.env.LOCAL_DEVELOPMENT === 'TRUE';
-    const host = isLocal ? process.env.HOST : '172.17.0.1';
+    const host = process.env.HOST_BACKEND;
     const apiKey = process.env.BACKEND_API_KEY;
 
     console.log(
