@@ -9,11 +9,6 @@ export const sendPortfolioData = async (
     const host = process.env.AGENT_HOST_BACKEND;
     const apiKey = process.env.BACKEND_API_KEY;
 
-    console.log(
-      'Sending portfolio balance to KPI endpoint:',
-      `http://${host}:${backendPort}/api/kpi`
-    );
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -35,7 +30,6 @@ export const sendPortfolioData = async (
     }
 
     const data = await response.json();
-    console.log('Portfolio balance sent successfully to KPI endpoint:', data);
   } catch (error) {
     console.error(
       'Error sending portfolio balance to KPI endpoint:',

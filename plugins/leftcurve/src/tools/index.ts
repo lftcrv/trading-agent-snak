@@ -52,17 +52,21 @@ import { sendParadexBalance } from '../actions/paradexActions/sendParadexAccount
 import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
 import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
+import { getContainerId } from '../utils/getContainerId.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
 ): Promise<PostgresAdaptater | undefined> => {
-  const database = await agent.createDatabase('leftcurve_db');
+  const containerId = getContainerId();
+  const dbName = `leftcurve_db_${containerId}`;
+  
+  const database = await agent.createDatabase(dbName);
   if (!database) {
-    console.error('❌ Could not create or connect to leftcurve_db');
+    console.error(`❌ Could not create or connect to leftcurve_db_${containerId}`);
     return;
   }
 
-  console.log('✅ Connected to leftcurve_db — attempting to create table');
+  console.log(`✅ Connected to leftcurve_db_${containerId} — attempting to create table`);
 
   const result = await database.createTable({
     table_name: 'sak_table_portfolio',

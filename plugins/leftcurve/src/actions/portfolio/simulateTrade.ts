@@ -20,9 +20,10 @@ export const simulateTrade = async (
 ) => {
   try {
     console.log('🚀 Starting simulateTrade with params:', params);
+    const containerId = getContainerId();
 
-    const db = await agent.getDatabaseByName('leftcurve_db');
-    if (!db) throw new Error('leftcurve_db not found');
+    const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
+    if (!db) throw new Error(`leftcurve_db_${containerId} not found`);
 
     const fromTokenRow = await db.select({
       FROM: ['sak_table_portfolio'],
@@ -140,10 +141,6 @@ export const simulateTrade = async (
       };
 
       await sendTradingInfo(tradingInfoDto);
-
-      if (params.explanation) {
-        console.log('explanation:', params.explanation);
-      }
 
       return { success: true, message: msg };
     }

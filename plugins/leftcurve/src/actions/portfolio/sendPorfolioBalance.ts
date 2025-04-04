@@ -9,10 +9,11 @@ import { getContainerId } from '../../utils/getContainerId.js';
 export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
   try {
     console.log('🚀 Starting sendPortfolioBalance with token tracking');
+    const containerId = getContainerId();
 
-    const db = await agent.getDatabaseByName('leftcurve_db');
+    const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
     if (!db) {
-      throw new Error('leftcurve_db not found');
+      throw new Error(`leftcurve_db_${containerId} not found`);
     }
 
     // Get all tokens from the portfolio
