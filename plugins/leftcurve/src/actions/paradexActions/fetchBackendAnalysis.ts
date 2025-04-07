@@ -3,8 +3,12 @@ import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 export const getAnalysisParadex = async (agent: StarknetAgentInterface) => {
   try {
     const apiKey = process.env.BACKEND_API_KEY;
-    const backendPort = process.env.BACKEND_PORT || '8080';
-    const host = process.env.AGENT_HOST_BACKEND;
+    const host = process.env.AGENT_HOST_BACKEND || '';
+    const port = process.env.BACKEND_PORT || '8080';
+
+    const backendUrl = host.startsWith('https')
+      ? host
+      : `http://${host}:${port}`;
 
     if (!apiKey) {
       console.error('Backend API key not set');
@@ -16,10 +20,10 @@ export const getAnalysisParadex = async (agent: StarknetAgentInterface) => {
     try {
       console.log(
         'url',
-        `http://${host}:${backendPort}/analysis/latest?assets=${assetsQuery}&platform=paradex`
+        `${backendUrl}/analysis/latest?assets=${assetsQuery}&platform=paradex`
       );
       const response = await fetch(
-        `http://${host}:${backendPort}/analysis/latest?assets=${assetsQuery}&platform=paradex`,
+        `${backendUrl}/analysis/latest?assets=${assetsQuery}&platform=paradex`,
         {
           method: 'GET',
           headers: {

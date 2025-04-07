@@ -5,8 +5,13 @@ export const sendPortfolioData = async (
   portfolioBalanceDto: any
 ): Promise<void> => {
   try {
-    const backendPort = process.env.BACKEND_PORT || '8080';
-    const host = process.env.AGENT_HOST_BACKEND;
+    const host = process.env.AGENT_HOST_BACKEND || '';
+    const port = process.env.BACKEND_PORT || '8080';
+
+    const backendUrl = host.startsWith('https')
+      ? host
+      : `http://${host}:${port}`;
+
     const apiKey = process.env.BACKEND_API_KEY;
 
     const headers: Record<string, string> = {
@@ -17,7 +22,7 @@ export const sendPortfolioData = async (
       headers['x-api-key'] = apiKey;
     }
 
-    const response = await fetch(`http://${host}:${backendPort}/api/kpi`, {
+    const response = await fetch(`${backendUrl}/api/kpi`, {
       method: 'POST',
       headers,
       body: JSON.stringify(portfolioBalanceDto),
