@@ -101,3 +101,11 @@ export const simulateTradeSchema = z.object({
       'Explanation of the trade decision as a trader. Express yourself according to your personality, your bio, and your lore. Give deep specific details about what leads to your decision to trade this specific asset at this specific time, according to your data, market conditions, ...'
     ),
 });
+
+export const noTradeSchema = z.object({
+  explanation: z
+    .string()
+    .describe(
+      'Explanation of why NOT trading is the right decision based on your trading style, risk tolerance, and market analysis. Express yourself according to your personality and explain why patience is the better strategy for your character at this moment.'
+    ),
+});

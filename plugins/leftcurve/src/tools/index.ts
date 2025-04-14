@@ -9,6 +9,7 @@ import {
   depositToParadexSchema,
   getMarketDetailsSchema,
   getMarketTradingInfoSchema,
+  noTradeSchema,
   placeOrderLimitSchema,
   placeOrderMarketSchema,
   simulateTradeSchema,
@@ -32,13 +33,13 @@ import { paradexPlaceOrderLimit } from '../actions/paradexActions/placeOrderLimi
 //   listMarketsSchema,
 // } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
 
-import { 
-    getBalanceSchema,
-    getBBOSchema,
-    getOpenOrdersSchema,
-    getOpenPositionsSchema,
-    listMarketsSchema,
-   } from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
+import {
+  getBalanceSchema,
+  getBBOSchema,
+  getOpenOrdersSchema,
+  getOpenPositionsSchema,
+  listMarketsSchema,
+} from '@starknet-agent-kit/plugin-paradex/dist/schema/index.js';
 import { paradexGetOpenOrders } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenOrders.js';
 import { paradexGetOpenPositions } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchOpenPositions.js';
 import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/dist/actions/fetchAccountBalance.js';
@@ -53,20 +54,25 @@ import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
 import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
 import { getContainerId } from '../utils/getContainerId.js';
+import { noTrade } from '@/actions/portfolio/noTrade.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
 ): Promise<PostgresAdaptater | undefined> => {
   const containerId = getContainerId();
   const dbName = `leftcurve_db_${containerId}`;
-  
+
   const database = await agent.createDatabase(dbName);
   if (!database) {
-    console.error(`❌ Could not create or connect to leftcurve_db_${containerId}`);
+    console.error(
+      `❌ Could not create or connect to leftcurve_db_${containerId}`
+    );
     return;
   }
 
-  console.log(`✅ Connected to leftcurve_db_${containerId} — attempting to create table`);
+  console.log(
+    `✅ Connected to leftcurve_db_${containerId} — attempting to create table`
+  );
 
   const result = await database.createTable({
     table_name: 'sak_table_portfolio',
@@ -268,7 +274,8 @@ export const registerTools = async (
   StarknetToolRegistry.push({
     name: 'get_analysis_paradex',
     plugins: 'leftcurve',
-    description: 'Get the latest analysis of Paradex.',
+    description:
+      'Analyze Paradex markets to evaluate current conditions. Use this to determine if market conditions actually match your specific trading style and risk preferences, or if staying out of the market might be more prudent.',
     schema: listMarketsSchema,
     execute: getAnalysisParadex,
   });
@@ -302,7 +309,7 @@ export const registerTools = async (
     name: 'simulate_trade',
     plugins: 'leftcurve',
     description:
-      'Simulate trading one token from your portfolio for another token, using BBO data for conversion to/from USDC.',
+      'ONLY use this if you decide trading makes sense for your character. Simulate trading one token from your portfolio for another token. This should NOT be used in every scenario - only when market conditions truly align with your personal trading philosophy.',
     schema: simulateTradeSchema,
     execute: simulateTrade,
   });
@@ -330,5 +337,14 @@ export const registerTools = async (
     description:
       'Always sends your total Portfolio balance to the backend with this function after any trade simulated.',
     execute: sendPortfolioBalance,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'no_trade',
+    plugins: 'leftcurve',
+    description:
+      'Choose this option when you decide that NOT trading is the best decision based on your character and current market conditions. This is often the wisest choice and shows your trading discipline and patience.',
+    schema: noTradeSchema,
+    execute: noTrade,
   });
 };
