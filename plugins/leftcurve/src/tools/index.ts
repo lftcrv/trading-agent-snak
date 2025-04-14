@@ -46,7 +46,7 @@ import { paradexGetBalance } from '@starknet-agent-kit/plugin-paradex/dist/actio
 import { paradexGetBBO } from '@starknet-agent-kit/plugin-paradex/dist/actions/getBBO.js';
 // import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
 import { paradexListMarkets } from '@starknet-agent-kit/plugin-paradex/dist/actions/listMarketsOnParadex.js';
-import { getAnalysisParadex } from '../actions/paradexActions/fetchBackendAnalysis.js';
+import { getAnalysisForAgent } from '../actions/paradexActions/fetchBackendAnalysis.js';
 import { depositToParadex } from '../actions/layerswapActions/depositToParadex.js';
 import { withdrawFromParadex } from '../actions/layerswapActions/withdrawFromParadex.js';
 import { sendParadexBalance } from '../actions/paradexActions/sendParadexAccountBalanceToBackend.js';
@@ -277,7 +277,7 @@ export const registerTools = async (
     description:
       'Analyze Paradex markets to evaluate current conditions. Use this to determine if market conditions actually match your specific trading style and risk preferences, or if staying out of the market might be more prudent.',
     schema: listMarketsSchema,
-    execute: getAnalysisParadex,
+    execute: getAnalysisForAgent,
   });
 
   // StarknetToolRegistry.push({
