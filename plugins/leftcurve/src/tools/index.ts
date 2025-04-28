@@ -54,7 +54,7 @@ import { simulateTrade } from '../actions/portfolio/simulateTrade.js';
 import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
 import { getContainerId } from '../utils/getContainerId.js';
-import { noTrade } from '@/actions/portfolio/noTrade.js';
+import { noTrade } from '../actions/portfolio/noTrade.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
