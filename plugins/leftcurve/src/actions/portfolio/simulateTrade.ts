@@ -3,6 +3,7 @@ import { BBOService } from '../paradexActions/getBBO.js';
 import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
+import { addParadexTrade } from '../../utils/paradexTradeHistory.js';
 
 export interface SimulateTradeParams {
   fromToken: string; // e.g. "ETH"
@@ -52,8 +53,10 @@ export const simulateTrade = async (
     }
 
     let usdcAmount = 0;
+    let fromTokenPrice = 0;
     if (params.fromToken.toUpperCase() === 'USDC') {
       usdcAmount = params.fromAmount;
+      fromTokenPrice = 1; // 1:1 for USDC
       const newBal = currentFromTokenBalance - params.fromAmount;
 
       const updateQuery = `UPDATE sak_table_portfolio SET balance = ${newBal.toFixed(8)} WHERE token_symbol = 'USDC'`;
@@ -77,6 +80,7 @@ export const simulateTrade = async (
       if (Number.isNaN(bestBid)) {
         throw new Error('Parsed bid price is NaN — cannot simulate SELL');
       }
+      fromTokenPrice = bestBid;
       usdcAmount = params.fromAmount * bestBid;
 
       const newFromBal = currentFromTokenBalance - params.fromAmount;
@@ -120,6 +124,18 @@ export const simulateTrade = async (
       const msg = `Sold ${params.fromAmount} ${params.fromToken} => got ${usdcAmount.toFixed(
         4
       )} USDC. (No need to buy since toToken=USDC)`;
+
+      // Save a single trade record for the USDC trade
+      await addParadexTrade(db, {
+        market: `${params.fromToken}-USD-PERP`,
+        side: 'SELL',
+        size: params.fromAmount,
+        price: fromTokenPrice,
+        order_type: 'MARKET',
+        status: 'FILLED',
+        trade_id: `sim-${Date.now()}`,
+        timestamp: new Date().toISOString()
+      });
 
       // Send trading info with explanation
       const tradeObject = {
@@ -192,6 +208,19 @@ export const simulateTrade = async (
         ]),
       });
     }
+
+    // Save a single trade record for the direct swap
+    // Instead of recording two separate transactions, record one combined swap
+    await addParadexTrade(db, {
+      market: `${params.fromToken}/${params.toToken}-SWAP`,
+      side: 'SWAP',
+      size: params.fromAmount,
+      price: fromTokenPrice / bestAsk, // Exchange rate between the two tokens
+      order_type: 'MARKET',
+      status: 'FILLED',
+      trade_id: `sim-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    });
 
     const msg = `Traded ${params.fromAmount} ${params.fromToken} => got ${usdcAmount.toFixed(
       4

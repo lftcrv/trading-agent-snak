@@ -13,6 +13,7 @@ import { authenticate } from '@starknet-agent-kit/plugin-paradex/dist/utils/para
 import { getContainerId } from '../../utils/getContainerId.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { ParadexOrderError } from '@starknet-agent-kit/plugin-paradex/dist/interfaces/errors.js';
+import { addParadexTrade } from '../../utils/paradexTradeHistory.js';
 
 export const paradexPlaceOrderMarket = async (
   agent: StarknetAgentInterface,
@@ -49,6 +50,7 @@ export const paradexPlaceOrderMarket = async (
     const result = await service.placeOrder(config, account, orderParams);
 
     if (result) {
+      // Record trade in trading info service
       const tradeObject = {
         tradeId: result.id ?? '0',
         tradeType: 'paradexPlaceOrderMarket',
@@ -67,6 +69,26 @@ export const paradexPlaceOrderMarket = async (
         information: tradeObject,
       };
       await sendTradingInfo(tradingInfoDto);
+      
+      // Record trade in local database
+      const containerId = getContainerId();
+      const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
+      if (db) {
+        await addParadexTrade(db, {
+          market: result.market,
+          side: result.side as 'BUY' | 'SELL',
+          size: parseFloat(result.size),
+          price: parseFloat(result.price),
+          order_type: 'MARKET',
+          status: result.status || 'PENDING',
+          trade_id: result.id,
+          timestamp: new Date().toISOString()
+        });
+        console.log('✅ Trade recorded in database');
+      } else {
+        console.warn('⚠️ Could not record trade in database - database not found');
+      }
+
       console.log('Order placed successfully:', result);
       console.log('explanation :', params.explanation);
       return true;

@@ -55,6 +55,9 @@ import { printPortfolio } from '../actions/portfolio/printPortfolio.js';
 import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.js';
 import { getContainerId } from '../utils/getContainerId.js';
 import { noTrade } from '../actions/portfolio/noTrade.js';
+import { getParadexTradeHistory } from '../actions/paradexActions/getTradeHistory.js';
+import { getTradeHistorySchema, inspectTradeTableSchema } from '../schema/index.js';
+import { inspectParadexTradeTable } from '../actions/paradexActions/inspectTradeTable.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -97,6 +100,44 @@ export const initializeTools = async (
     });
   } else {
     console.log('✅ sak_table_portfolio created successfully');
+  }
+
+  // Create paradex_trades table to store trade history
+  const tradeTableResult = await database.createTable({
+    table_name: 'paradex_trades',
+    if_not_exist: true,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['timestamp', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+      ['market', 'VARCHAR(50) NOT NULL'],
+      ['side', 'VARCHAR(10) NOT NULL'], // 'BUY' or 'SELL'
+      ['size', 'NUMERIC(18,8) NOT NULL'],
+      ['price', 'NUMERIC(18,8) NOT NULL'],
+      ['order_type', 'VARCHAR(20) NOT NULL'], // 'LIMIT' or 'MARKET'
+      ['status', 'VARCHAR(20) NOT NULL'], // 'FILLED', 'PARTIAL', 'PENDING', etc.
+      ['trade_id', 'VARCHAR(100)'], // External trade ID from Paradex if available
+    ]),
+  });
+
+  if (tradeTableResult.status === 'error' && tradeTableResult.code === '42P07') {
+    console.log('⚠️ Table paradex_trades already exists; attaching...');
+    database.addExistingTable({
+      table_name: 'paradex_trades',
+      if_not_exist: false,
+      fields: new Map([
+        ['id', 'SERIAL PRIMARY KEY'],
+        ['timestamp', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+        ['market', 'VARCHAR(50) NOT NULL'],
+        ['side', 'VARCHAR(10) NOT NULL'],
+        ['size', 'NUMERIC(18,8) NOT NULL'],
+        ['price', 'NUMERIC(18,8) NOT NULL'],
+        ['order_type', 'VARCHAR(20) NOT NULL'],
+        ['status', 'VARCHAR(20) NOT NULL'],
+        ['trade_id', 'VARCHAR(100)'],
+      ]),
+    });
+  } else {
+    console.log('✅ paradex_trades table created successfully');
   }
 
   // Check if the table is empty
@@ -309,7 +350,7 @@ export const registerTools = async (
     name: 'simulate_trade',
     plugins: 'leftcurve',
     description:
-      'ONLY use this if you decide trading makes sense for your character. Simulate trading one token from your portfolio for another token. This should NOT be used in every scenario - only when market conditions truly align with your personal trading philosophy.',
+      'ONLY use this if you decide trading makes sense for your character. Simulate trading one token from your portfolio for another token. This should NOT be used in every scenario - only when market conditions truly align with your personal trading philosophy. IMPORTANT: Avoid "revert trades" - never swap back to a token you recently traded out of within the last 24 hours unless there is an extremely compelling reason with significant market changes. Trading back and forth between the same tokens is usually a sign of poor strategy and will reduce profitability.',
     schema: simulateTradeSchema,
     execute: simulateTrade,
   });
@@ -347,4 +388,22 @@ export const registerTools = async (
     schema: noTradeSchema,
     execute: noTrade,
   });
+
+  StarknetToolRegistry.push({
+    name: 'get_paradex_trade_history',
+    plugins: 'leftcurve',
+    description: 'Retrieve the latest trades (up to 8) executed on Paradex. IMPORTANT: This tool MUST be called before each operation on Paradex to avoid revert trades and ensure you have the latest market information. CRITICAL: After reviewing your trade history, if you see that you recently swapped from Token A to Token B, you should NEVER swap back from Token B to Token A within a short timeframe unless market conditions have drastically changed (>10% price movement). Such behavior demonstrates poor trading strategy and significantly reduces profitability.',
+    schema: getTradeHistorySchema,
+    execute: getParadexTradeHistory,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'inspect_paradex_trade_table',
+    plugins: 'leftcurve',
+    description: 'DEBUG TOOL: Inspect the structure and content of the paradex_trades table',
+    schema: inspectTradeTableSchema,
+    execute: inspectParadexTradeTable,
+  });
+
+  console.log('✅ leftcurve tools registered');
 };
