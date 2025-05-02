@@ -117,3 +117,13 @@ export const getTradeHistorySchema = z.object({
 export const inspectTradeTableSchema = z.object({
   // No parameters needed
 });
+
+export const addExplanationSchema = z.object({
+  explanation: z
+    .string()
+    .describe('The agent\'s explanation of its current strategy or reasoning about market conditions')
+});
+
+export const getExplanationsSchema = z.object({
+  // No parameters needed for this action
+});

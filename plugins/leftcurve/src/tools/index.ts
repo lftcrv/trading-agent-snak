@@ -58,6 +58,9 @@ import { noTrade } from '../actions/portfolio/noTrade.js';
 import { getParadexTradeHistory } from '../actions/paradexActions/getTradeHistory.js';
 import { getTradeHistorySchema, inspectTradeTableSchema } from '../schema/index.js';
 import { inspectParadexTradeTable } from '../actions/paradexActions/inspectTradeTable.js';
+import { addAgentExplanation } from '../actions/paradexActions/addExplanation.js';
+import { getAgentExplanations } from '../actions/paradexActions/getExplanations.js';
+import { addExplanationSchema, getExplanationsSchema } from '../schema/index.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -118,6 +121,23 @@ export const initializeTools = async (
       ['trade_id', 'VARCHAR(100)'], // External trade ID from Paradex if available
     ]),
   });
+
+  // Create agent_explanations table to store the agent's strategy explanations
+  const explanationsTableResult = await database.createTable({
+    table_name: 'agent_explanations',
+    if_not_exist: true,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['timestamp', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+      ['explanation', 'TEXT NOT NULL'], // Using TEXT type to store longer explanations
+    ]),
+  });
+
+  if (explanationsTableResult.status === 'error' && explanationsTableResult.code !== '42P07') {
+    console.error('❌ Error creating agent_explanations table:', explanationsTableResult);
+  } else {
+    console.log('✅ agent_explanations table created or already exists');
+  }
 
   if (tradeTableResult.status === 'error' && tradeTableResult.code === '42P07') {
     console.log('⚠️ Table paradex_trades already exists; attaching...');
@@ -403,6 +423,22 @@ export const registerTools = async (
     description: 'DEBUG TOOL: Inspect the structure and content of the paradex_trades table',
     schema: inspectTradeTableSchema,
     execute: inspectParadexTradeTable,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'add_agent_explanation',
+    plugins: 'leftcurve',
+    description: 'Add an explanation of your current strategy or reasoning to the database. IMPORTANT: You MUST call this action after each trading decision (including no_trade) to maintain a history of your strategic thinking. This helps track how your strategy evolves over time and provides continuity in your decision-making process.',
+    schema: addExplanationSchema,
+    execute: addAgentExplanation,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'get_agent_explanations',
+    plugins: 'leftcurve',
+    description: 'Get your recent strategy explanations from the database. CRITICAL: You MUST call this action before making any trading decision to ensure you take into account your recent strategic thinking. This helps maintain consistency in your strategy and avoid contradictory decisions. Always review your past explanations before deciding on your next move.',
+    schema: getExplanationsSchema,
+    execute: getAgentExplanations,
   });
 
   console.log('✅ leftcurve tools registered');
