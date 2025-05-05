@@ -3,6 +3,7 @@ import { BBOService } from '../paradexActions/getBBO.js';
 import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
+import { checkUsdcBalance } from '../../utils/checkUsdcBalance.js';
 
 export interface SimulateTradeParams {
   fromToken: string; // e.g. "ETH"
@@ -24,6 +25,15 @@ export const simulateTrade = async (
 
     const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
     if (!db) throw new Error(`leftcurve_db_${containerId} not found`);
+
+    // If we're buying directly with USDC, check balance first
+    if (params.fromToken.toUpperCase() === 'USDC') {
+      const balanceCheck = await checkUsdcBalance(agent, params.fromAmount, params.toToken);
+      if (!balanceCheck.success) {
+        console.warn(balanceCheck.message);
+        return { success: false, message: balanceCheck.message };
+      }
+    }
 
     const fromTokenRow = await db.select({
       FROM: ['sak_table_portfolio'],

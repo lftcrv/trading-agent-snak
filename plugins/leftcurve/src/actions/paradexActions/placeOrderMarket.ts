@@ -13,6 +13,8 @@ import { authenticate } from '@starknet-agent-kit/plugin-paradex/dist/utils/para
 import { getContainerId } from '../../utils/getContainerId.js';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { ParadexOrderError } from '@starknet-agent-kit/plugin-paradex/dist/interfaces/errors.js';
+import { checkUsdcBalance } from '../../utils/checkUsdcBalance.js';
+import { BBOService } from '../paradexActions/getBBO.js';
 
 export const paradexPlaceOrderMarket = async (
   agent: StarknetAgentInterface,
@@ -22,6 +24,47 @@ export const paradexPlaceOrderMarket = async (
   try {
     const config = await getParadexConfig();
     const account = await getAccount();
+
+    // Check USDC balance if this is a BUY order
+    const isBuyOrder = params.side.toLowerCase() === 'long' || 
+                      params.side.toLowerCase() === 'buy';
+    
+    if (isBuyOrder) {
+      // Determine token symbol from market (e.g., "ETH-USD-PERP" -> "ETH")
+      const tokenSymbol = params.market.split('-')[0];
+      
+      // For market orders, we need to get the current price from BBO
+      try {
+        const bboService = new BBOService();
+        const bboData = await bboService.fetchMarketBBO(config, params.market);
+        
+        if (!bboData?.ask) {
+          throw new Error(`No valid ask price found for ${params.market}`);
+        }
+        
+        // For buying, we use the ask price
+        const askPrice = parseFloat(bboData.ask);
+        if (Number.isNaN(askPrice)) {
+          throw new Error(`Invalid ask price for ${params.market}`);
+        }
+        
+        // Calculate estimated USDC cost
+        const requiredUsdcAmount = Number(params.size) * askPrice;
+        
+        // Add a larger buffer for market orders (10%) as price can move
+        const bufferedAmount = requiredUsdcAmount * 1.10;
+        
+        // Check if we have enough USDC
+        const balanceCheck = await checkUsdcBalance(agent, bufferedAmount, tokenSymbol);
+        if (!balanceCheck.success) {
+          console.warn(balanceCheck.message);
+          return false;
+        }
+      } catch (error) {
+        console.error(`Failed to fetch market price for ${params.market}:`, error);
+        throw new Error(`Cannot verify USDC balance: ${error.message}`);
+      }
+    }
 
     try {
       account.jwtToken = await authenticate(config, account);
