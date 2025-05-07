@@ -1,9 +1,18 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
+import { addAgentExplanation } from '../../utils/agentExplanations.js';
 
 export interface NoTradeParams {
   explanation: string;
+  market?: string; // Optional market that was analyzed
+  reason?: string; // Specific reason for not trading (e.g., "UNFAVORABLE_CONDITIONS", "INSUFFICIENT_BALANCE", etc.)
+  analysis?: {
+    price?: number;
+    volume?: number;
+    volatility?: number;
+    trend?: string;
+  };
 }
 
 /**
@@ -18,13 +27,27 @@ export const noTrade = async (
     console.log('🛑 Agent decided NOT to trade');
     console.log('explanation:', params.explanation);
 
-    // Send trading info with explanation
+    const containerId = getContainerId();
+    const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
+    if (!db) {
+      throw new Error(`leftcurve_db_${containerId} not found`);
+    }
+
+    // Send trading info with enhanced explanation format
     const decisionObject = {
       tradeId: Date.now().toString(),
       tradeType: 'noTrade',
-      decision: {
+      trade: {
         action: 'wait',
+        market: params.market || 'N/A',
+        reason: params.reason || 'STRATEGIC_DECISION',
         explanation: params.explanation || 'No explanation provided',
+        analysis: params.analysis || {
+          price: 0,
+          volume: 0,
+          volatility: 0,
+          trend: 'N/A'
+        }
       },
     };
 
@@ -33,7 +56,19 @@ export const noTrade = async (
       information: decisionObject,
     };
 
+    // Send trading info to backend
     await sendTradingInfo(tradingInfoDto);
+
+    // Store explanation in database with additional data
+    await addAgentExplanation(db, params.explanation, {
+      market: params.market,
+      reason: params.reason,
+      price: params.analysis?.price,
+      volume: params.analysis?.volume,
+      volatility: params.analysis?.volatility,
+      trend: params.analysis?.trend,
+      decision_type: 'NO_TRADE'
+    });
 
     return {
       success: true,

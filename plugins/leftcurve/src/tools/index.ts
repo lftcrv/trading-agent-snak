@@ -130,6 +130,13 @@ export const initializeTools = async (
       ['id', 'SERIAL PRIMARY KEY'],
       ['timestamp', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
       ['explanation', 'TEXT NOT NULL'], // Using TEXT type to store longer explanations
+      ['market', 'VARCHAR(50)'], // Market that was analyzed
+      ['reason', 'VARCHAR(50)'], // Specific reason for the decision
+      ['price', 'NUMERIC(18,8)'], // Current price if available
+      ['volume', 'NUMERIC(18,8)'], // Current volume if available
+      ['volatility', 'NUMERIC(18,8)'], // Current volatility if available
+      ['trend', 'VARCHAR(20)'], // Current market trend if available
+      ['decision_type', 'VARCHAR(20) NOT NULL DEFAULT \'NO_TRADE\''], // Type of decision (NO_TRADE, TRADE, etc.)
     ]),
   });
 
