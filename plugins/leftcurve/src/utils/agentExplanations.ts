@@ -4,6 +4,13 @@ import { getContainerId } from './getContainerId.js';
 export interface AgentExplanation {
   explanation: string;
   timestamp?: Date | string;
+  market?: string;
+  reason?: string;
+  price?: number;
+  volume?: number;
+  volatility?: number;
+  trend?: string;
+  decision_type?: string;
 }
 
 /**
@@ -11,14 +18,34 @@ export interface AgentExplanation {
  */
 export const addAgentExplanation = async (
   database: PostgresAdaptater,
-  explanation: string
+  explanation: string,
+  additionalData?: {
+    market?: string;
+    reason?: string;
+    price?: number;
+    volume?: number;
+    volatility?: number;
+    trend?: string;
+    decision_type?: string;
+  }
 ): Promise<{ success: boolean; message: string }> => {
   try {
+    const fields = new Map([['explanation', explanation]]);
+
+    // Add optional fields if they exist
+    if (additionalData) {
+      if (additionalData.market) fields.set('market', additionalData.market);
+      if (additionalData.reason) fields.set('reason', additionalData.reason);
+      if (additionalData.price) fields.set('price', additionalData.price.toString());
+      if (additionalData.volume) fields.set('volume', additionalData.volume.toString());
+      if (additionalData.volatility) fields.set('volatility', additionalData.volatility.toString());
+      if (additionalData.trend) fields.set('trend', additionalData.trend);
+      if (additionalData.decision_type) fields.set('decision_type', additionalData.decision_type);
+    }
+
     const insertResult = await database.insert({
       table_name: 'agent_explanations',
-      fields: new Map([
-        ['explanation', explanation],
-      ]),
+      fields,
     });
 
     if (insertResult.status === 'success') {

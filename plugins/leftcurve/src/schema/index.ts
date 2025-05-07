@@ -98,7 +98,7 @@ export const simulateTradeSchema = z.object({
   explanation: z
     .string()
     .describe(
-      'Detailed explanation of your trade decision as a trader. Include: 1) Why this specific trade makes sense NOW, 2) Why this is NOT reversing a recent trade (if applicable), 3) What market conditions, price movements, or new information justifies this trade, 4) How this aligns with your long-term strategy. Express yourself according to your personality, bio, and lore.'
+      'Be concise and strategic in your trade explanation. Focus on: 1) Current market opportunity (max 2 sentences), 2) How this trade aligns with your portfolio positioning (e.g., "Increasing BTC exposure from 40% to 60% to capitalize on bullish momentum"), 3) Risk management considerations (e.g., "Maintaining 20% USDC for future opportunities"). Keep it under 100 words.'
     ),
 });
 
@@ -106,8 +106,25 @@ export const noTradeSchema = z.object({
   explanation: z
     .string()
     .describe(
-      'Explanation of why NOT trading is the right decision based on your trading style, risk tolerance, and market analysis. Include why patience is better than making questionable trades or reversing recent positions. Remember that the most successful traders often make fewer trades but with higher conviction. Express yourself according to your personality and explain why restraint is the better strategy for your character at this moment.'
+      'Be concise and strategic in your no-trade explanation. Focus on: 1) Current market conditions (max 1 sentence), 2) Your portfolio positioning (e.g., "Already well-positioned with 60% BTC, 20% ETH, 20% USDC"), 3) Why waiting is better than trading (e.g., "Waiting for better entry point as current volatility is too high"). Keep it under 75 words.'
     ),
+  market: z
+    .string()
+    .optional()
+    .describe('The market that was analyzed (e.g., "BTC-USD-PERP")'),
+  reason: z
+    .string()
+    .optional()
+    .describe('Specific reason for not trading (e.g., "UNFAVORABLE_CONDITIONS", "INSUFFICIENT_BALANCE", "HIGH_VOLATILITY", "RECENT_TRADE", etc.)'),
+  analysis: z
+    .object({
+      price: z.number().optional().describe('Current price of the asset'),
+      volume: z.number().optional().describe('Current trading volume'),
+      volatility: z.number().optional().describe('Current market volatility'),
+      trend: z.string().optional().describe('Current market trend (e.g., "BULLISH", "BEARISH", "SIDEWAYS")')
+    })
+    .optional()
+    .describe('Market analysis data that influenced the decision')
 });
 
 export const getTradeHistorySchema = z.object({
