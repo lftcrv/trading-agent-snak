@@ -56,11 +56,12 @@ import { sendPortfolioBalance } from '../actions/portfolio/sendPorfolioBalance.j
 import { getContainerId } from '../utils/getContainerId.js';
 import { noTrade } from '../actions/portfolio/noTrade.js';
 import { getParadexTradeHistory } from '../actions/paradexActions/getTradeHistory.js';
-import { getTradeHistorySchema, inspectTradeTableSchema } from '../schema/index.js';
+import { getTradeHistorySchema, inspectTradeTableSchema, showPriceCacheSchema } from '../schema/index.js';
 import { inspectParadexTradeTable } from '../actions/paradexActions/inspectTradeTable.js';
 import { addAgentExplanation } from '../actions/paradexActions/addExplanation.js';
 import { getAgentExplanations } from '../actions/paradexActions/getExplanations.js';
 import { addExplanationSchema, getExplanationsSchema } from '../schema/index.js';
+import { showPriceCache } from '../actions/portfolio/showPriceCache.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -446,6 +447,14 @@ export const registerTools = async (
     description: 'Get your recent strategy explanations from the database. CRITICAL: You MUST call this action before making any trading decision to ensure you take into account your recent strategic thinking. This helps maintain consistency in your strategy and avoid contradictory decisions. Always review your past explanations before deciding on your next move.',
     schema: getExplanationsSchema,
     execute: getAgentExplanations,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'show_price_cache',
+    plugins: 'leftcurve',
+    description: 'Display the price cache used for valuation. This tool helps diagnose issues with token price lookups by showing which tokens have cached prices, their values, sources and ages.',
+    schema: showPriceCacheSchema,
+    execute: showPriceCache,
   });
 
   console.log('✅ leftcurve tools registered');

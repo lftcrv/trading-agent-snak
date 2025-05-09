@@ -1,6 +1,7 @@
 import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { sendPortfolioData } from '../../utils/sendPortfolioData.js';
 import { getContainerId } from '../../utils/getContainerId.js';
+import { PriceService } from '../../services/PriceService.js';
 
 /**
  * Sends the total portfolio balance with token details to the backend KPI endpoint
@@ -30,75 +31,80 @@ export const sendPortfolioBalance = async (agent: StarknetAgentInterface) => {
       throw new Error('No tokens found in portfolio');
     }
 
-    // Convert everything to USD value using BBO data
+    // Convert everything to USD value using our improved price service
     const tokens = portfolioResult.query.rows;
     const { getParadexConfig } = await import(
       '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js'
     );
-    const { BBOService } = await import('../paradexActions/getBBO.js');
 
     let totalUsdValue = 0;
-    const bboService = new BBOService();
+    const priceService = PriceService.getInstance();
     const config = await getParadexConfig();
 
     // Process each token and calculate its USD value
     const tokenDetails = [];
+    let failedTokens = 0;
+    
+    // Analyser le portefeuille
     for (const token of tokens) {
       const symbol = token.token_symbol;
       const balance = Number(token.balance);
-      let price = 0;
-
-      if (symbol === 'USDC') {
-        // USDC is already in USD
-        price = 1;
-        totalUsdValue += balance;
+      
+      // Obtenir le prix avec notre service amélioré
+      const price = await priceService.getTokenPrice(symbol, config);
+      
+      if (price !== undefined && price > 0) {
+        const tokenUsdValue = balance * price;
+        totalUsdValue += tokenUsdValue;
+        console.log(
+          `Token ${symbol}: ${balance} * $${price} = $${tokenUsdValue.toFixed(2)}`
+        );
       } else {
-        try {
-          // Get the latest price from Paradex
-          const market = `${symbol}-USD-PERP`;
-          const bboData = await bboService.fetchMarketBBO(config, market);
-
-          if (bboData?.bid) {
-            // Use the bid price (what you could sell for)
-            price = parseFloat(bboData.bid);
-            const tokenUsdValue = balance * price;
-            totalUsdValue += tokenUsdValue;
-            console.log(
-              `Token ${symbol}: ${balance} * $${price} = $${tokenUsdValue.toFixed(2)}`
-            );
-          } else {
-            console.warn(
-              `Could not get price for ${symbol}, not including in USD total`
-            );
-          }
-        } catch (error) {
-          console.warn(`Error getting price for ${symbol}:`, error);
-        }
+        console.error(
+          `❌ Failed to get any valid price for ${symbol}, not including in USD total`
+        );
+        failedTokens++;
       }
 
       tokenDetails.push({
         symbol,
         balance,
-        price,
+        price: price ?? 0,
+        hasValidPrice: price !== undefined && price > 0,
       });
     }
 
-    // Format details for logging
+    // Avertissement si certains tokens n'ont pas pu être valorisés
+    if (failedTokens > 0) {
+      console.warn(`⚠️ ${failedTokens} token(s) could not be valued and were excluded from total USD calculation`);
+    }
+
+    // Format details for logging with additional information about price validity
     const tokenSummary = tokenDetails
       .map(
-        (token) =>
-          `${token.symbol}: ${token.balance.toFixed(4)} (= $${(token.balance * token.price).toFixed(2)} @ $${token.price.toFixed(2)})`
+        (token) => {
+          if (token.hasValidPrice) {
+            return `${token.symbol}: ${token.balance.toFixed(4)} (= $${(token.balance * token.price).toFixed(2)} @ $${token.price.toFixed(2)})`;
+          } else {
+            return `${token.symbol}: ${token.balance.toFixed(4)} (⚠️ No valid price)`;
+          }
+        }
       )
       .join(', ');
 
     console.log(`Portfolio: ${tokenSummary}`);
     console.log(`Total USD Value: $${totalUsdValue.toFixed(2)}`);
 
-    // Create DTO for enhanced backend - now includes token details
+    // Create DTO for enhanced backend - now includes token details and validity info
     const portfolioBalanceDto = {
       runtimeAgentId: getContainerId(),
       balanceInUSD: totalUsdValue,
-      tokens: tokenDetails,
+      tokens: tokenDetails.map(({ symbol, balance, price, hasValidPrice }) => ({
+        symbol,
+        balance,
+        price,
+        hasValidPrice
+      })),
     };
 
     // Send to backend

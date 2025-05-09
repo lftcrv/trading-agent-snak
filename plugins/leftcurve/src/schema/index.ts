@@ -144,3 +144,7 @@ export const addExplanationSchema = z.object({
 export const getExplanationsSchema = z.object({
   // No parameters needed for this action
 });
+
+export const showPriceCacheSchema = z.object({
+  // No parameters needed
+});
