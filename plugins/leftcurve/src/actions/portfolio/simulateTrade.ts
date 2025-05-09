@@ -5,6 +5,7 @@ import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 import { addParadexTrade } from '../../utils/paradexTradeHistory.js';
 import { checkUsdcBalance } from '../../utils/checkUsdcBalance.js';
+import { PriceService } from '../../services/PriceService.js';
 
 export interface SimulateTradeParams {
   fromToken: string; // e.g. "ETH"
@@ -64,6 +65,9 @@ export const simulateTrade = async (
 
     let usdcAmount = 0;
     let fromTokenPrice = 0;
+    const config = await getParadexConfig();
+    const priceService = PriceService.getInstance();
+    
     if (params.fromToken.toUpperCase() === 'USDC') {
       usdcAmount = params.fromAmount;
       fromTokenPrice = 1; // 1:1 for USDC
@@ -72,26 +76,18 @@ export const simulateTrade = async (
       const updateQuery = `UPDATE sak_table_portfolio SET balance = ${newBal.toFixed(8)} WHERE token_symbol = 'USDC'`;
       const updateResult = await db.query(updateQuery);
     } else {
-      const fromMarket = `${params.fromToken}-USD-PERP`;
-
-      const config = await getParadexConfig();
-      const bboService = new BBOService();
-
-      // fetch BBO => best bid if selling
-      const bboData = await bboService.fetchMarketBBO(config, fromMarket);
-      if (!bboData?.bid) {
+      // Obtenir le prix avec notre service amélioré - forcer le rafraîchissement pour le trading
+      const tokenPrice = await priceService.getTokenPrice(params.fromToken, config, true);
+      
+      if (tokenPrice === undefined || tokenPrice <= 0) {
         throw new Error(
-          `No valid bid price found for ${fromMarket} to SELL ${params.fromToken}.`
+          `Could not get a valid price for ${params.fromToken}. Trading is not possible without pricing data.`
         );
       }
-
-      // Multiply fromAmount * bestBid => how many USDC we get
-      const bestBid = parseFloat(bboData.bid);
-      if (Number.isNaN(bestBid)) {
-        throw new Error('Parsed bid price is NaN — cannot simulate SELL');
-      }
-      fromTokenPrice = bestBid;
-      usdcAmount = params.fromAmount * bestBid;
+      
+      fromTokenPrice = tokenPrice;
+      usdcAmount = params.fromAmount * fromTokenPrice;
+      console.log(`Selling ${params.fromAmount} ${params.fromToken} at price $${fromTokenPrice} = $${usdcAmount.toFixed(2)} USDC`);
 
       const newFromBal = currentFromTokenBalance - params.fromAmount;
       const updateFromQuery = `UPDATE sak_table_portfolio SET balance = ${newFromBal.toFixed(8)} WHERE token_symbol = '${params.fromToken}'`;
@@ -171,25 +167,20 @@ export const simulateTrade = async (
       return { success: true, message: msg };
     }
 
-    const toMarket = `${params.toToken}-USD-PERP`;
-    const config = await getParadexConfig();
-    const bboService = new BBOService();
-
-    const bboDataTo = await bboService.fetchMarketBBO(config, toMarket);
-    if (!bboDataTo?.ask) {
+    // Pour l'achat du token de destination, nous avons besoin du prix ask (de vente)
+    // Nous obtenons d'abord le prix via notre service amélioré
+    const tokenPrice = await priceService.getTokenPrice(params.toToken, config, true);
+    
+    if (tokenPrice === undefined || tokenPrice <= 0) {
       throw new Error(
-        `No valid ask price found for ${toMarket} to BUY ${params.toToken}.`
+        `Could not get a valid price for ${params.toToken}. Trading is not possible without pricing data.`
       );
     }
-
-    const bestAsk = parseFloat(bboDataTo.ask);
-    if (Number.isNaN(bestAsk)) {
-      throw new Error('Parsed ask price is NaN — cannot simulate BUY');
-    }
-
-    // => how many tokens we can buy
-    toTokenAmount = usdcAmount / bestAsk;
-    finalPrice = bestAsk;
+    
+    finalPrice = tokenPrice;
+    // Combien de tokens pouvons-nous acheter avec notre montant USDC?
+    toTokenAmount = usdcAmount / finalPrice;
+    console.log(`Buying ${params.toToken} with ${usdcAmount.toFixed(2)} USDC at price $${finalPrice} = ${toTokenAmount.toFixed(6)} ${params.toToken}`);
 
     // Insert/update row for toToken
     const tokenResult = await db.select({
@@ -225,7 +216,7 @@ export const simulateTrade = async (
       market: `${params.fromToken}/${params.toToken}-SWAP`,
       side: 'SWAP',
       size: params.fromAmount,
-      price: fromTokenPrice / bestAsk, // Exchange rate between the two tokens
+      price: fromTokenPrice / finalPrice, // Exchange rate between the two tokens
       order_type: 'MARKET',
       status: 'FILLED',
       trade_id: `sim-${Date.now()}`,
@@ -236,7 +227,7 @@ export const simulateTrade = async (
       4
     )} USDC => bought ${toTokenAmount.toFixed(
       6
-    )} ${params.toToken} @ ask ${bestAsk.toFixed(2)} USDC`;
+    )} ${params.toToken} @ price ${finalPrice.toFixed(2)} USDC`;
 
     // Send trading info with explanation
     const tradeObject = {
