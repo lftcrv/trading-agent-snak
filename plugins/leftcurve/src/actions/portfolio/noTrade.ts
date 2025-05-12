@@ -2,6 +2,7 @@ import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { sendTradingInfo } from '../../utils/sendTradingInfos.js';
 import { getContainerId } from '../../utils/getContainerId.js';
 import { addAgentExplanation } from '../../utils/agentExplanations.js';
+import { isPnLCheckRecent } from '../../utils/lastPnLCheck.js';
 
 export interface NoTradeParams {
   explanation: string;
@@ -24,14 +25,31 @@ export const noTrade = async (
   params: NoTradeParams
 ) => {
   try {
-    console.log('🛑 Agent decided NOT to trade');
-    console.log('explanation:', params.explanation);
-
+    console.log('📉 No trade decision with explanation:', params.explanation);
+    
+    // Check if a PnL check was performed recently
+    if (!isPnLCheckRecent()) {
+      console.warn('⚠️ WARNING: No recent PnL check detected before deciding not to trade. It is highly recommended to check PnL before making trading decisions.');
+      console.warn('⚠️ The agent should call get_portfolio_pnl before deciding not to trade to make informed decisions.');
+    }
+    
     const containerId = getContainerId();
     const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
-    if (!db) {
-      throw new Error(`leftcurve_db_${containerId} not found`);
-    }
+    if (!db) throw new Error(`leftcurve_db_${containerId} not found`);
+    
+    // Record the explanation in the agent_explanations table
+    await addAgentExplanation(db, params.explanation, {
+      market: params.market,
+      reason: params.reason,
+      price: params.analysis?.price,
+      volume: params.analysis?.volume,
+      volatility: params.analysis?.volatility,
+      trend: params.analysis?.trend,
+      decision_type: 'NO_TRADE'
+    });
+
+    console.log('🛑 Agent decided NOT to trade');
+    console.log('explanation:', params.explanation);
 
     // Send trading info with enhanced explanation format
     const decisionObject = {
@@ -58,17 +76,6 @@ export const noTrade = async (
 
     // Send trading info to backend
     await sendTradingInfo(tradingInfoDto);
-
-    // Store explanation in database with additional data
-    await addAgentExplanation(db, params.explanation, {
-      market: params.market,
-      reason: params.reason,
-      price: params.analysis?.price,
-      volume: params.analysis?.volume,
-      volatility: params.analysis?.volatility,
-      trend: params.analysis?.trend,
-      decision_type: 'NO_TRADE'
-    });
 
     return {
       success: true,

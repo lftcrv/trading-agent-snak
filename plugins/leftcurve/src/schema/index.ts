@@ -148,3 +148,27 @@ export const getExplanationsSchema = z.object({
 export const showPriceCacheSchema = z.object({
   // No parameters needed
 });
+
+export const getPortfolioPnLSchema = z.object({
+  // No parameters needed
+});
+
+export const initializePortfolioPnLSchema = z.object({
+  // No parameters needed
+});
+
+export const resetPortfolioSchema = z.object({
+  keep_usdc: z
+    .boolean()
+    .optional()
+    .describe('Whether to keep the current USDC balance (default: false)'),
+  usdc_amount: z
+    .number()
+    .positive()
+    .optional()
+    .describe('Set a specific USDC amount (default: 1000)'),
+});
+
+export const listSupportedTokensSchema = z.object({
+  // No parameters needed
+});
