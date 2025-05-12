@@ -1,6 +1,7 @@
 import { BBOService } from '../actions/paradexActions/getBBO.js';
 import { SystemConfig } from '../interfaces/config.js';
 import { BBOResponse } from '../interfaces/results.js';
+import { validateSupportedToken, getMarketsForToken } from '../utils/validateSupportedToken.js';
 
 // Structure pour stocker les données de prix en cache
 interface CachedPrice {
@@ -72,8 +73,18 @@ export class PriceService {
     if (this.defaultPrices[symbol] !== undefined) {
       return this.defaultPrices[symbol];
     }
+    
+    // Check if the token is supported by Paradex before attempting to fetch price
+    const symbolUpper = symbol.toUpperCase();
+    const tokenValidation = validateSupportedToken(symbolUpper);
+    
+    if (!tokenValidation.isSupported) {
+      console.error(`Token ${symbol} is not supported on Paradex. Cannot fetch price.`);
+      console.error(tokenValidation.message);
+      return undefined;
+    }
 
-    const cacheKey = symbol.toUpperCase();
+    const cacheKey = symbolUpper;
     const cachedData = this.priceCache.get(cacheKey);
 
     // Vérifier si nous avons un prix en cache valide et pas de forçage de rafraîchissement
@@ -121,6 +132,85 @@ export class PriceService {
     symbol: string,
     config: SystemConfig
   ): Promise<{ price: number; source: string } | undefined> {
+    const symbolUpper = symbol.toUpperCase();
+    
+    // Check if we have known markets for this token in our cache
+    const knownMarkets = getMarketsForToken(symbolUpper);
+    if (knownMarkets && knownMarkets.length > 0) {
+      console.log(`Using ${knownMarkets.length} known markets for ${symbolUpper}: ${knownMarkets.join(', ')}`);
+      
+      // First try known USD markets
+      const usdMarkets = knownMarkets.filter(m => m.includes('-USD'));
+      if (usdMarkets.length > 0) {
+        // Try each known USD market
+        for (const market of usdMarkets) {
+          for (let attempt = 1; attempt <= this.MAX_RETRY_ATTEMPTS; attempt++) {
+            try {
+              const bboData = await this.bboService.fetchMarketBBO(config, market);
+              
+              if (bboData?.bid) {
+                const price = parseFloat(bboData.bid);
+                if (!isNaN(price) && price > 0) {
+                  console.log(`Got price for ${symbol} from known market ${market}: $${price} (attempt ${attempt})`);
+                  return { price, source: market };
+                }
+              }
+              
+              if (!bboData?.bid && bboData?.ask) {
+                const askPrice = parseFloat(bboData.ask);
+                if (!isNaN(askPrice) && askPrice > 0) {
+                  const estimatedBid = askPrice * 0.995;
+                  console.log(`Using adjusted ask price for ${symbol} from known market ${market}: $${estimatedBid} (from ask ${askPrice}, attempt ${attempt})`);
+                  return { price: estimatedBid, source: `${market} (adjusted ask)` };
+                }
+              }
+            } catch (error) {
+              console.warn(`Error fetching known market ${market} on attempt ${attempt}:`, error);
+              
+              if (attempt < this.MAX_RETRY_ATTEMPTS) {
+                await this.sleep(this.RETRY_DELAY_MS);
+              }
+            }
+          }
+        }
+      }
+      
+      // If USD markets failed, try BTC markets (we'll need to get BTC price first)
+      const btcMarkets = knownMarkets.filter(m => m.includes('-BTC'));
+      if (btcMarkets.length > 0) {
+        // Get BTC price first
+        const btcPrice = await this.getTokenPrice('BTC', config);
+        if (btcPrice) {
+          // Try each known BTC market
+          for (const market of btcMarkets) {
+            for (let attempt = 1; attempt <= this.MAX_RETRY_ATTEMPTS; attempt++) {
+              try {
+                const bboData = await this.bboService.fetchMarketBBO(config, market);
+                
+                if (bboData?.bid) {
+                  const priceBTC = parseFloat(bboData.bid);
+                  if (!isNaN(priceBTC) && priceBTC > 0) {
+                    const priceUSD = priceBTC * btcPrice;
+                    console.log(`Got price for ${symbol} from known BTC market ${market}: ${priceBTC} BTC = $${priceUSD} (attempt ${attempt})`);
+                    return { price: priceUSD, source: `${market} (via BTC)` };
+                  }
+                }
+              } catch (error) {
+                console.warn(`Error fetching known BTC market ${market} on attempt ${attempt}:`, error);
+                
+                if (attempt < this.MAX_RETRY_ATTEMPTS) {
+                  await this.sleep(this.RETRY_DELAY_MS);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Fallback: try generic market formats if no known markets worked
+    console.log(`No known markets found or available for ${symbol}, trying generic market formats`);
+    
     // 1. Essayer chaque format de marché
     for (const formatTemplate of this.marketFormats) {
       const market = formatTemplate.replace('{SYMBOL}', symbol);

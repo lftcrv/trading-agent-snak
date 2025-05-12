@@ -62,6 +62,14 @@ import { addAgentExplanation } from '../actions/paradexActions/addExplanation.js
 import { getAgentExplanations } from '../actions/paradexActions/getExplanations.js';
 import { addExplanationSchema, getExplanationsSchema } from '../schema/index.js';
 import { showPriceCache } from '../actions/portfolio/showPriceCache.js';
+import { getPortfolioPnL } from '../actions/portfolio/getPortfolioPnL.js';
+import { getPortfolioPnLSchema } from '../schema/index.js';
+import { initializePortfolioPnL } from '../actions/portfolio/initializePortfolioPnL.js';
+import { initializePortfolioPnLSchema } from '../schema/index.js';
+import { resetPortfolio } from '../actions/portfolio/resetPortfolio.js';
+import { resetPortfolioSchema } from '../schema/index.js';
+import { listSupportedTokens } from '../actions/portfolio/listSupportedTokens.js';
+import { listSupportedTokensSchema } from '../schema/index.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -88,6 +96,10 @@ export const initializeTools = async (
       ['id', 'SERIAL PRIMARY KEY'],
       ['token_symbol', 'VARCHAR(50) NOT NULL'],
       ['balance', 'NUMERIC(18,8) NOT NULL'],
+      ['entry_price', 'NUMERIC(18,8)'],
+      ['entry_timestamp', 'TIMESTAMP'],
+      ['unrealized_pnl', 'NUMERIC(18,8)'],
+      ['pnl_percentage', 'NUMERIC(18,8)'],
     ]),
   });
 
@@ -100,8 +112,34 @@ export const initializeTools = async (
         ['id', 'SERIAL PRIMARY KEY'],
         ['token_symbol', 'VARCHAR(50) NOT NULL'],
         ['balance', 'NUMERIC(18,8) NOT NULL'],
+        ['entry_price', 'NUMERIC(18,8)'],
+        ['entry_timestamp', 'TIMESTAMP'],
+        ['unrealized_pnl', 'NUMERIC(18,8)'],
+        ['pnl_percentage', 'NUMERIC(18,8)'],
       ]),
     });
+    
+    // Check if we need to alter the table to add the new columns
+    try {
+      // Check if entry_price column exists
+      const columnCheckResult = await database.query(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'sak_table_portfolio' AND column_name = 'entry_price'"
+      );
+      
+      if (columnCheckResult.status === 'success' && columnCheckResult.query && columnCheckResult.query.rows.length === 0) {
+        console.log('⚠️ Adding new PnL tracking columns to sak_table_portfolio table...');
+        
+        // Add the new columns if they don't exist
+        await database.query("ALTER TABLE sak_table_portfolio ADD COLUMN IF NOT EXISTS entry_price NUMERIC(18,8)");
+        await database.query("ALTER TABLE sak_table_portfolio ADD COLUMN IF NOT EXISTS entry_timestamp TIMESTAMP");
+        await database.query("ALTER TABLE sak_table_portfolio ADD COLUMN IF NOT EXISTS unrealized_pnl NUMERIC(18,8)");
+        await database.query("ALTER TABLE sak_table_portfolio ADD COLUMN IF NOT EXISTS pnl_percentage NUMERIC(18,8)");
+        
+        console.log('✅ Added PnL tracking columns to sak_table_portfolio table');
+      }
+    } catch (error) {
+      console.error('❌ Error checking or adding columns:', error);
+    }
   } else {
     console.log('✅ sak_table_portfolio created successfully');
   }
@@ -333,6 +371,14 @@ export const registerTools = async (
   // });
 
   StarknetToolRegistry.push({
+    name: 'list_supported_tokens',
+    plugins: 'leftcurve',
+    description: 'Get a list of all tokens on Paradex, clearly differentiating between tokens that have active trading markets and those that don\'t. IMPORTANT: Always check this list before attempting to trade with any token - only tokens with active USD or BTC markets can actually be traded. This tool now ensures you only attempt to trade tokens with active markets, preventing errors.',
+    schema: listSupportedTokensSchema,
+    execute: listSupportedTokens,
+  });
+
+  StarknetToolRegistry.push({
     name: 'list_markets',
     plugins: 'leftcurve',
     description: 'Get a list of all available market symbols on Paradex',
@@ -378,7 +424,7 @@ export const registerTools = async (
     name: 'simulate_trade',
     plugins: 'leftcurve',
     description:
-      'ONLY use this if you decide trading makes sense for your character. Simulate trading one token from your portfolio for another token. This should NOT be used in every scenario - only when market conditions truly align with your personal trading philosophy. IMPORTANT: Avoid "revert trades" - never swap back to a token you recently traded out of within the last 24 hours unless there is an extremely compelling reason with significant market changes. Trading back and forth between the same tokens is usually a sign of poor strategy and will reduce profitability.',
+      'IMPORTANT: Before using this tool, you MUST first call get_portfolio_pnl to understand your current profitability and make informed decisions. This tool simulates trading one token from your portfolio for another token. Only use this if you decide trading makes sense for your character and after reviewing your PnL. This should NOT be used in every scenario - only when market conditions truly align with your personal trading philosophy. IMPORTANT: Avoid "revert trades" - never swap back to a token you recently traded out of within the last 24 hours unless there is an extremely compelling reason with significant market changes. Trading back and forth between the same tokens is usually a sign of poor strategy and will reduce profitability.',
     schema: simulateTradeSchema,
     execute: simulateTrade,
   });
@@ -412,7 +458,7 @@ export const registerTools = async (
     name: 'no_trade',
     plugins: 'leftcurve',
     description:
-      'Choose this option when you decide that NOT trading is the best decision based on your character and current market conditions. This is often the wisest choice and shows your trading discipline and patience.',
+      'IMPORTANT: Before using this tool, you MUST first call get_portfolio_pnl to understand your current profitability. Choose this option when you decide that NOT trading is the best decision based on your character, current market conditions, and your portfolio\'s PnL. This is often the wisest choice and shows your trading discipline and patience.',
     schema: noTradeSchema,
     execute: noTrade,
   });
@@ -423,6 +469,30 @@ export const registerTools = async (
     description: 'Retrieve the latest trades (up to 8) executed on Paradex. IMPORTANT: This tool MUST be called before each operation on Paradex to avoid revert trades and ensure you have the latest market information. CRITICAL: After reviewing your trade history, if you see that you recently swapped from Token A to Token B, you should NEVER swap back from Token B to Token A within a short timeframe unless market conditions have drastically changed (>10% price movement). Such behavior demonstrates poor trading strategy and significantly reduces profitability.',
     schema: getTradeHistorySchema,
     execute: getParadexTradeHistory,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'get_portfolio_pnl',
+    plugins: 'leftcurve',
+    description: 'CRITICAL: You MUST call this action BEFORE making any trading decision to understand your current profitability. This tool provides the current PnL (Profit and Loss) for all tokens in your portfolio, which is essential for making informed decisions about when to take profits or cut losses. Without checking your PnL first, you cannot make proper trading decisions.',
+    schema: getPortfolioPnLSchema,
+    execute: getPortfolioPnL,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'initialize_portfolio_pnl',
+    plugins: 'leftcurve',
+    description: 'Initialize entry prices for tokens in your portfolio that don\'t have them yet. This is useful when migrating from an older version without PnL tracking.',
+    schema: initializePortfolioPnLSchema,
+    execute: initializePortfolioPnL,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'reset_portfolio',
+    plugins: 'leftcurve',
+    description: 'Reset the portfolio by removing all tokens and reinitializing with USDC. Use this if you want to start fresh or if there are issues with the portfolio.',
+    schema: resetPortfolioSchema,
+    execute: resetPortfolio,
   });
 
   StarknetToolRegistry.push({
