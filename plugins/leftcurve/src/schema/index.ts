@@ -172,3 +172,18 @@ export const resetPortfolioSchema = z.object({
 export const listSupportedTokensSchema = z.object({
   // No parameters needed
 });
+
+// New schemas for portfolio allocation target tracking
+
+export const setTargetAllocationSchema = z.object({
+  allocations: z.array(
+    z.object({
+      symbol: z.string().describe('Token symbol (e.g., DOGE, BOME, USDC)'),
+      percentage: z.number().min(0).max(100).describe('Target allocation percentage (0-100)')
+    })
+  ).describe('Array of token allocation objects with symbol and percentage. You must only use the tokens you are assigned to trade with, plus USDC. Total must equal 100%.'),
+});
+
+export const getTargetAllocationSchema = z.object({
+  // No parameters needed for this action
+});
