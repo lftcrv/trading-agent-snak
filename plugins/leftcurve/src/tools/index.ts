@@ -70,6 +70,9 @@ import { resetPortfolio } from '../actions/portfolio/resetPortfolio.js';
 import { resetPortfolioSchema } from '../schema/index.js';
 import { listSupportedTokens } from '../actions/portfolio/listSupportedTokens.js';
 import { listSupportedTokensSchema } from '../schema/index.js';
+import { setTargetAllocation } from '../actions/portfolio/setTargetAllocation.js';
+import { getTargetAllocation } from '../actions/portfolio/getTargetAllocation.js';
+import { setTargetAllocationSchema, getTargetAllocationSchema } from '../schema/index.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -179,10 +182,47 @@ export const initializeTools = async (
     ]),
   });
 
+  // Create portfolio_allocation_targets table to store target allocation strategy
+  const allocationTableResult = await database.createTable({
+    table_name: 'portfolio_allocation_targets',
+    if_not_exist: true,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['token_symbol', 'VARCHAR(50) NOT NULL'],
+      ['target_percentage', 'NUMERIC(8,4) NOT NULL'],
+      ['created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+      ['updated_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+      ['notes', 'TEXT'] // For storing additional information about this allocation target
+    ]),
+  });
+
+  // Create allocation_strategy table to store the strategy explanation
+  const strategyTableResult = await database.createTable({
+    table_name: 'allocation_strategy',
+    if_not_exist: true,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['explanation', 'TEXT NOT NULL'],
+      ['created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP']
+    ]),
+  });
+
   if (explanationsTableResult.status === 'error' && explanationsTableResult.code !== '42P07') {
     console.error('❌ Error creating agent_explanations table:', explanationsTableResult);
   } else {
     console.log('✅ agent_explanations table created or already exists');
+  }
+
+  if (allocationTableResult.status === 'error' && allocationTableResult.code !== '42P07') {
+    console.error('❌ Error creating portfolio_allocation_targets table:', allocationTableResult);
+  } else {
+    console.log('✅ portfolio_allocation_targets table created or already exists');
+  }
+
+  if (strategyTableResult.status === 'error' && strategyTableResult.code !== '42P07') {
+    console.error('❌ Error creating allocation_strategy table:', strategyTableResult);
+  } else {
+    console.log('✅ allocation_strategy table created or already exists');
   }
 
   if (tradeTableResult.status === 'error' && tradeTableResult.code === '42P07') {
@@ -433,7 +473,7 @@ export const registerTools = async (
     name: 'print_portfolio',
     plugins: 'leftcurve',
     description:
-      'Prints the current simulated portfolio with token balances in a nice table',
+      'Prints a detailed view of your current portfolio with accurate token balances, values, and PRECISE allocation percentages. This tool shows exactly what percentage of your portfolio each token represents, which is CRITICAL for making informed trading decisions. If you have set a target allocation, it will compare your current allocation to your targets and highlight any significant deviations that may require rebalancing. Use this tool frequently to understand your exact portfolio composition.',
     execute: printPortfolio,
   });
 
@@ -517,6 +557,22 @@ export const registerTools = async (
     description: 'Get your recent strategy explanations from the database. CRITICAL: You MUST call this action before making any trading decision to ensure you take into account your recent strategic thinking. This helps maintain consistency in your strategy and avoid contradictory decisions. Always review your past explanations before deciding on your next move.',
     schema: getExplanationsSchema,
     execute: getAgentExplanations,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'set_target_allocation',
+    plugins: 'leftcurve',
+    description: 'IMPORTANT: Define your target portfolio allocation strategy by specifying percentage targets for each asset. You MUST include ALL tokens you know you can trade with (all specific tokens assigned to your agent, plus USDC). Do not exclude any of the tradable tokens - create a complete strategy that includes every available token. Check with list_supported_tokens to verify which ones are tradable. This will guide all your future trading decisions to maintain the desired balance. Example: If you were assigned DOGE, BOME, NIL, RAY, and XMR, a valid comprehensive allocation would be DOGE:20%, BOME:20%, NIL:20%, RAY:15%, XMR:15%, USDC:10%. Total must always equal 100%.',
+    schema: setTargetAllocationSchema,
+    execute: setTargetAllocation,
+  });
+
+  StarknetToolRegistry.push({
+    name: 'get_target_allocation',
+    plugins: 'leftcurve',
+    description: 'CRITICAL: You MUST call this action BEFORE making any trading decision to understand your target allocation strategy. It returns your predefined target allocation percentages for each asset, which should guide all portfolio adjustments. Having a clear understanding of your target allocation is essential to maintain a strategic approach to trading. Always compare your current portfolio (using print_portfolio) with your target allocation before deciding to trade.',
+    schema: getTargetAllocationSchema,
+    execute: getTargetAllocation,
   });
 
   StarknetToolRegistry.push({

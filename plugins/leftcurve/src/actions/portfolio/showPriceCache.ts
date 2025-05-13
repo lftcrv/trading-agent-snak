@@ -7,7 +7,8 @@ import { PriceService } from '../../services/PriceService.js';
 export const showPriceCache = async (agent: StarknetAgentInterface) => {
   try {
     const priceService = PriceService.getInstance();
-    const cacheEntries = priceService.getCacheEntries();
+    const cacheStatus = priceService.getCacheStatus();
+    const cacheEntries = Object.entries(cacheStatus);
     
     if (cacheEntries.length === 0) {
       console.log('📂 Le cache des prix est vide.');
@@ -22,23 +23,11 @@ export const showPriceCache = async (agent: StarknetAgentInterface) => {
     
     // Formatter les données pour un affichage clair
     const formattedEntries = cacheEntries.map(([symbol, data]) => {
-      const ageMs = Date.now() - data.timestamp;
-      let ageString;
-      
-      if (ageMs < 60000) {
-        ageString = `${Math.floor(ageMs / 1000)}s`;
-      } else if (ageMs < 3600000) {
-        ageString = `${Math.floor(ageMs / 60000)}m`;
-      } else {
-        ageString = `${Math.floor(ageMs / 3600000)}h`;
-      }
-      
       return {
         Symbol: symbol,
         'Prix (USD)': `$${data.price.toFixed(4)}`,
         Source: data.source,
-        Age: ageString,
-        'Timestamp': new Date(data.timestamp).toLocaleTimeString(),
+        Age: data.age,
       };
     });
     
@@ -51,7 +40,7 @@ export const showPriceCache = async (agent: StarknetAgentInterface) => {
           symbol,
           price: data.price,
           source: data.source,
-          timestamp: data.timestamp,
+          age: data.age,
         }))
       },
       text: `${cacheEntries.length} entrées dans le cache des prix`
