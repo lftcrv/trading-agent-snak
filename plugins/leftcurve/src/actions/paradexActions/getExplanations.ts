@@ -69,16 +69,6 @@ export const getAgentExplanations = async (
     formattedExplanations.forEach((explanation, index) => {
       const timeAgo = getTimeAgo(new Date(explanation.timestamp || Date.now()));
       console.log(`📝 Explanation #${index + 1} (${timeAgo}):`);
-      console.log(`Market: ${explanation.market || 'N/A'}`);
-      console.log(`Reason: ${explanation.reason || 'N/A'}`);
-      if (explanation.analysis) {
-        console.log('Analysis:');
-        console.log(`  Price: ${explanation.analysis.price || 'N/A'}`);
-        console.log(`  Volume: ${explanation.analysis.volume || 'N/A'}`);
-        console.log(`  Volatility: ${explanation.analysis.volatility || 'N/A'}`);
-        console.log(`  Trend: ${explanation.analysis.trend || 'N/A'}`);
-      }
-      console.log(`Decision Type: ${explanation.decision_type || 'N/A'}`);
       console.log(`Explanation: ${explanation.explanation}`);
       console.log('---');
     });
@@ -87,8 +77,7 @@ export const getAgentExplanations = async (
     const summaryLines = formattedExplanations.map((explanation, index) => {
       const timeAgo = getTimeAgo(new Date(explanation.timestamp || Date.now()));
       const marketInfo = explanation.market ? `[${explanation.market}] ` : '';
-      const reasonInfo = explanation.reason ? `(${explanation.reason}) ` : '';
-      return `${index + 1}. ${timeAgo} ${marketInfo}${reasonInfo}: ${explanation.explanation.substring(0, 100)}${explanation.explanation.length > 100 ? '...' : ''}`;
+      return `${index + 1}. ${timeAgo} ${marketInfo}: ${explanation.explanation.substring(0, 100)}${explanation.explanation.length > 100 ? '...' : ''}`;
     });
     
     const summary = `Found ${explanations.length} recent strategy explanations:\n\n${summaryLines.join('\n')}`;
