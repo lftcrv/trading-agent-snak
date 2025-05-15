@@ -15,6 +15,10 @@ import {
   simulateTradeSchema,
   walletSchema,
   withdrawFromParadexSchema,
+  addExplanationSchema,
+  getExplanationsSchema,
+  setStrategyTextSchema,
+  getStrategyTextSchema
 } from '../schema/index.js';
 import { swapSchema } from '@starknet-agent-kit/plugin-avnu/src/schema/index.js';
 import { swapTokens } from '../actions/avnuActions/swap.js';
@@ -60,10 +64,8 @@ import { getTradeHistorySchema, inspectTradeTableSchema, showPriceCacheSchema } 
 import { inspectParadexTradeTable } from '../actions/paradexActions/inspectTradeTable.js';
 import { addAgentExplanation } from '../actions/paradexActions/addExplanation.js';
 import { getAgentExplanations } from '../actions/paradexActions/getExplanations.js';
-import { addExplanationSchema, getExplanationsSchema } from '../schema/index.js';
-import { showPriceCache } from '../actions/portfolio/showPriceCache.js';
-import { getPortfolioPnL } from '../actions/portfolio/getPortfolioPnL.js';
-import { getPortfolioPnLSchema } from '../schema/index.js';
+import { setStrategyText } from '../actions/paradexActions/setStrategyText.js';
+import { getStrategyText } from '../actions/paradexActions/getStrategyText.js';
 import { initializePortfolioPnL } from '../actions/portfolio/initializePortfolioPnL.js';
 import { initializePortfolioPnLSchema } from '../schema/index.js';
 import { resetPortfolio } from '../actions/portfolio/resetPortfolio.js';
@@ -73,6 +75,9 @@ import { listSupportedTokensSchema } from '../schema/index.js';
 import { setTargetAllocation } from '../actions/portfolio/setTargetAllocation.js';
 import { getTargetAllocation } from '../actions/portfolio/getTargetAllocation.js';
 import { setTargetAllocationSchema, getTargetAllocationSchema } from '../schema/index.js';
+import { showPriceCache } from '../actions/portfolio/showPriceCache.js';
+import { getPortfolioPnL } from '../actions/portfolio/getPortfolioPnL.js';
+import { getPortfolioPnLSchema } from '../schema/index.js';
 
 export const initializeTools = async (
   agent: StarknetAgentInterface
@@ -179,6 +184,17 @@ export const initializeTools = async (
       ['volatility', 'NUMERIC(18,8)'], // Current volatility if available
       ['trend', 'VARCHAR(20)'], // Current market trend if available
       ['decision_type', 'VARCHAR(20) NOT NULL DEFAULT \'NO_TRADE\''], // Type of decision (NO_TRADE, TRADE, etc.)
+    ]),
+  });
+
+  // Create agent_strategies table to store the agent's entry/exit strategies
+  const strategiesTableResult = await database.createTable({
+    table_name: 'agent_strategies',
+    if_not_exist: true,
+    fields: new Map([
+      ['id', 'SERIAL PRIMARY KEY'],
+      ['timestamp', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+      ['strategy_text', 'TEXT NOT NULL'], // Using TEXT type to store longer strategy text with bullet points
     ]),
   });
 
@@ -581,6 +597,46 @@ export const registerTools = async (
     description: 'Display the price cache used for valuation. This tool helps diagnose issues with token price lookups by showing which tokens have cached prices, their values, sources and ages.',
     schema: showPriceCacheSchema,
     execute: showPriceCache,
+  });
+
+  // Add action to store explanations
+  StarknetToolRegistry.push({
+    name: 'add_explanation',
+    plugins: 'leftcurve',
+    description:
+      'Add a quick explanation of your current market strategy or thought process for future reference',
+    schema: addExplanationSchema,
+    execute: addAgentExplanation,
+  });
+
+  // Add action to retrieve explanations
+  StarknetToolRegistry.push({
+    name: 'get_explanations',
+    plugins: 'leftcurve',
+    description:
+      'Retrieve your most recent strategy explanations to maintain consistency in your decision-making',
+    schema: getExplanationsSchema,
+    execute: getAgentExplanations,
+  });
+  
+  // Add action to set strategy text with bullet points
+  StarknetToolRegistry.push({
+    name: 'set_strategy_text',
+    plugins: 'leftcurve',
+    description:
+      'IMPORTANT: Use this action to define your entry and exit strategy for each of your 5 assigned cryptocurrencies. You MUST create a bulleted list (one bullet per asset) that clearly states WHEN to enter positions and WHEN to take profits (exit conditions). Example: "- BTC: Buy when price drops below $40K, sell when 20% profit is achieved or if price drops 10% from entry". This strategy note will serve as your trading plan that you can reference before making decisions.',
+    schema: setStrategyTextSchema,
+    execute: setStrategyText,
+  });
+  
+  // Add action to retrieve strategy text
+  StarknetToolRegistry.push({
+    name: 'get_strategy_text',
+    plugins: 'leftcurve',
+    description:
+      'CRITICAL: You MUST call this action BEFORE making any trading decision to review your previously defined entry/exit strategy. This ensures you stay consistent with your trading plan rather than making emotional decisions. Always consult your strategy text before using simulate_trade to ensure the trade aligns with your predefined rules for when to enter or exit positions.',
+    schema: getStrategyTextSchema,
+    execute: getStrategyText,
   });
 
   console.log('✅ leftcurve tools registered');
