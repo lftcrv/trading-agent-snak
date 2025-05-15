@@ -25,10 +25,12 @@ interface AllocationRow {
  * Sets the token allocation for the agent
  * @param agent The Starknet agent
  * @param allocations Array of token allocations
+ * @param reasoning Optional reasoning for the allocation update
  */
 export const setTokenAllocation = async (
   agent: StarknetAgentInterface,
-  allocations: TokenAllocation[]
+  allocations: TokenAllocation[],
+  reasoning?: string
 ): Promise<void> => {
   try {
     const containerId = getContainerId();
@@ -47,7 +49,8 @@ export const setTokenAllocation = async (
         ['token_symbol', 'VARCHAR(50) NOT NULL'],
         ['target_percentage', 'NUMERIC(8,4) NOT NULL'],
         ['created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
-        ['updated_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP']
+        ['updated_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+        ['notes', 'TEXT'] // For storing reasoning
       ]),
     });
     
@@ -60,11 +63,28 @@ export const setTokenAllocation = async (
       
       // Insert new allocations
       for (const allocation of allocations) {
+        const fields = new Map([
+          ['token_symbol', allocation.symbol],
+          ['target_percentage', allocation.percentage.toString()]
+        ]);
+        
+        // Add reasoning as notes if provided
+        if (reasoning) {
+          fields.set('notes', reasoning);
+        }
+        
         await db.insert({
           table_name: 'portfolio_allocation_targets',
+          fields
+        });
+      }
+      
+      // Store the reasoning in the allocation_strategy table if provided
+      if (reasoning) {
+        await db.insert({
+          table_name: 'allocation_strategy',
           fields: new Map([
-            ['token_symbol', allocation.symbol],
-            ['target_percentage', allocation.percentage.toString()]
+            ['explanation', reasoning]
           ]),
         });
       }

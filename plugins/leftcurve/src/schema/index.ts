@@ -182,6 +182,7 @@ export const setTargetAllocationSchema = z.object({
       percentage: z.number().min(0).max(100).describe('Target allocation percentage (0-100)')
     })
   ).describe('Array of token allocation objects with symbol and percentage. You must only use the tokens you are assigned to trade with, plus USDC. Total must equal 100%.'),
+  reasoning: z.string().optional().describe('Reasoning behind the allocation strategy update, explaining market conditions or insights that prompted the change')
 });
 
 export const getTargetAllocationSchema = z.object({

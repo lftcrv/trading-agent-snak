@@ -11,11 +11,12 @@ export const setTargetAllocation = async (
   agent: StarknetAgentInterface,
   params: {
     allocations: { symbol: string; percentage: number }[];
+    reasoning?: string;
   }
 ): Promise<string> => {
   try {
     // Validate input allocations
-    const { allocations } = params;
+    const { allocations, reasoning } = params;
     
     if (!allocations || !Array.isArray(allocations) || allocations.length === 0) {
       return '❌ Error: Invalid allocations provided. Please provide an array of token allocations.';
@@ -38,14 +39,24 @@ export const setTargetAllocation = async (
     }));
     
     // Store the allocations
-    await setTokenAllocation(agent, formattedAllocations);
+    await setTokenAllocation(agent, formattedAllocations, reasoning);
     
     // Format a nice response
+    let response = `✅ Target allocation ${reasoning ? 'updated' : 'set'} successfully:\n`;
+    
+    // Add the allocations
     const allocationList = formattedAllocations
       .map(a => `${a.symbol}: ${a.percentage.toFixed(2)}%`)
       .join('\n');
     
-    return `✅ Target allocation set successfully:\n${allocationList}`;
+    response += allocationList;
+    
+    // Add reasoning if provided
+    if (reasoning) {
+      response += `\n\n📝 Reasoning for update: ${reasoning}`;
+    }
+    
+    return response;
     
   } catch (error) {
     console.error('Error setting target allocation:', error);
