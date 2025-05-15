@@ -562,7 +562,7 @@ export const registerTools = async (
   StarknetToolRegistry.push({
     name: 'add_agent_explanation',
     plugins: 'leftcurve',
-    description: 'Add an explanation of your current strategy or reasoning to the database. IMPORTANT: You MUST call this action after each trading decision (including no_trade) to maintain a history of your strategic thinking. This helps track how your strategy evolves over time and provides continuity in your decision-making process.',
+    description: 'Add an explanation of your current strategy or reasoning to the database. IMPORTANT: Before calling this, always retrieve previous explanations with get_agent_explanations. Your new explanation should incorporate key elements from your previous strategies (last 3 explanations) to maintain consistency over time. Craft your explanation as a comprehensive summary that builds upon previous decisions while adapting to current market conditions. You MUST call this action after each trading decision (including no_trade) to maintain a history of your strategic thinking.',
     schema: addExplanationSchema,
     execute: addAgentExplanation,
   });
