@@ -64,23 +64,31 @@ export const getAgentExplanations = async (
       };
     });
     
-    // Log detailed formatted explanations for debugging
-    console.log('🧠 AGENT STRATEGY: Retrieved previous strategy explanations:');
-    formattedExplanations.forEach((explanation, index) => {
-      const timeAgo = getTimeAgo(new Date(explanation.timestamp || Date.now()));
-      console.log(`📝 Explanation #${index + 1} (${timeAgo}):`);
-      console.log(`Explanation: ${explanation.explanation}`);
+    // Log only the most recent explanation for display
+    console.log('🧠 AGENT STRATEGY: Retrieved previous strategy explanations');
+    if (formattedExplanations.length > 0) {
+      const latestExplanation = formattedExplanations[0]; // First one is the most recent
+      const timeAgo = getTimeAgo(new Date(latestExplanation.timestamp || Date.now()));
+      console.log(`📝 Most recent explanation (${timeAgo}):`);
+      console.log(`${latestExplanation.explanation}`);
       console.log('---');
-    });
+    }
 
-    // Create a nice summary message
-    const summaryLines = formattedExplanations.map((explanation, index) => {
-      const timeAgo = getTimeAgo(new Date(explanation.timestamp || Date.now()));
-      const marketInfo = explanation.market ? `[${explanation.market}] ` : '';
-      return `${index + 1}. ${timeAgo} ${marketInfo}: ${explanation.explanation.substring(0, 100)}${explanation.explanation.length > 100 ? '...' : ''}`;
-    });
+    // Create a simplified summary message
+    let summary = '';
+    if (formattedExplanations.length > 0) {
+      const latestExplanation = formattedExplanations[0];
+      const timeAgo = getTimeAgo(new Date(latestExplanation.timestamp || Date.now()));
+      const marketInfo = latestExplanation.market ? `[${latestExplanation.market}] ` : '';
+      summary = `Most recent strategy explanation (${timeAgo}): ${marketInfo}${latestExplanation.explanation.substring(0, 100)}${latestExplanation.explanation.length > 100 ? '...' : ''}`;
+      
+      if (formattedExplanations.length > 1) {
+        summary += `\n\nNOTE: ${formattedExplanations.length - 1} additional previous explanations were retrieved but not displayed.`;
+      }
+    } else {
+      summary = 'No previous strategy explanations found.';
+    }
     
-    const summary = `Found ${explanations.length} recent strategy explanations:\n\n${summaryLines.join('\n')}`;
     console.log('🧠 AGENT STRATEGY: Successfully retrieved previous strategy explanations to guide current decision');
     
     return {
