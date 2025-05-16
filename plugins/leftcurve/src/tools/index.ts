@@ -586,7 +586,8 @@ export const registerTools = async (
   StarknetToolRegistry.push({
     name: 'get_target_allocation',
     plugins: 'leftcurve',
-    description: 'CRITICAL: You MUST call this action BEFORE making any trading decision to understand your target allocation strategy. It returns your predefined target allocation percentages for each asset, which should guide all portfolio adjustments. Having a clear understanding of your target allocation is essential to maintain a strategic approach to trading. Always compare your current portfolio (using print_portfolio) with your target allocation before deciding to trade.',
+    description:
+      'CRITICAL: You MUST call this action BEFORE making any trading decision to understand your target allocation strategy. It returns your predefined target allocation percentages for each asset, which should guide all portfolio adjustments. Having a clear understanding of your target allocation is essential to maintain a strategic approach to trading. Always compare your current portfolio (using print_portfolio) with your target allocation before deciding to trade.',
     schema: getTargetAllocationSchema,
     execute: getTargetAllocation,
   });

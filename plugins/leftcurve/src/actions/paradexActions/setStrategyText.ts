@@ -22,33 +22,10 @@ export const setStrategyText = async (
   params: SetStrategyTextParams
 ): Promise<StrategyTextResult> => {
   try {
-    console.log('🧠 TRADING STRATEGY: Agent is setting entry/exit conditions for assigned assets');
-    console.log('📝 STRATEGY DEFINITION:');
+    console.log('🧠 TRADING STRATEGY: Recording agent\'s entry/exit strategy for assets');
+    console.log('📝 STRATEGY CONTENT:');
     console.log(params.strategy_text);
     console.log('---');
-    
-    // Check if the strategy contains bullet points
-    if (!params.strategy_text.includes('-')) {
-      console.warn('⚠️ WARNING: Strategy text does not appear to contain bullet points (-). Strategy should ideally have one bullet point per asset.');
-    }
-    
-    // Check if strategy seems to address both entry and exit conditions
-    const hasEntryConditions = params.strategy_text.toLowerCase().includes('buy') || 
-                               params.strategy_text.toLowerCase().includes('enter') || 
-                               params.strategy_text.toLowerCase().includes('long');
-    
-    const hasExitConditions = params.strategy_text.toLowerCase().includes('sell') || 
-                              params.strategy_text.toLowerCase().includes('exit') || 
-                              params.strategy_text.toLowerCase().includes('profit') ||
-                              params.strategy_text.toLowerCase().includes('take profit');
-    
-    if (!hasEntryConditions) {
-      console.warn('⚠️ WARNING: Strategy may not clearly define ENTRY conditions. Consider updating with clear buy/entry signals.');
-    }
-    
-    if (!hasExitConditions) {
-      console.warn('⚠️ WARNING: Strategy may not clearly define EXIT conditions. Consider updating with clear sell/exit/take profit signals.');
-    }
     
     const containerId = getContainerId();
     const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
@@ -64,8 +41,7 @@ export const setStrategyText = async (
     const result = await saveStrategyText(db, trimmedStrategyText);
     
     if (result.success) {
-      console.log('✅ TRADING STRATEGY: Successfully recorded entry/exit strategy');
-      console.log('📊 This strategy will guide future trading decisions to ensure disciplined trading');
+      console.log('✅ TRADING STRATEGY: Successfully recorded entry/exit strategy for future reference');
       return {
         success: true,
         message: 'Successfully saved strategy to database',
