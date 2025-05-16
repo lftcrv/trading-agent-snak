@@ -16,6 +16,12 @@ interface ExplanationResult {
 
 /**
  * Add an agent's explanation/reasoning about its strategy to the database
+ * 
+ * NOTE: Before calling this, always retrieve previous explanations with getAgentExplanations.
+ * Your new explanation should incorporate key elements from your previous strategies 
+ * (last 3 explanations) to maintain consistency over time. Craft your explanation as 
+ * a comprehensive summary that builds upon previous decisions while adapting to current 
+ * market conditions.
  */
 export const addAgentExplanation = async (
   agent: StarknetAgentInterface,
