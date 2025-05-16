@@ -15,10 +15,13 @@ export const setTargetAllocation = async (
   }
 ): Promise<string> => {
   try {
+    console.log('🎯 ALLOCATION STRATEGY: Agent is setting target portfolio allocation percentages');
+    
     // Validate input allocations
     const { allocations, reasoning } = params;
     
     if (!allocations || !Array.isArray(allocations) || allocations.length === 0) {
+      console.log('❌ Error: Invalid allocations provided');
       return '❌ Error: Invalid allocations provided. Please provide an array of token allocations.';
     }
     
@@ -29,6 +32,7 @@ export const setTargetAllocation = async (
     );
     
     if (Math.abs(totalPercentage - 100) > 0.01) {
+      console.log(`❌ Error: Total allocation percentage must equal 100%. Current total: ${totalPercentage.toFixed(2)}%`);
       return `❌ Error: Total allocation percentage must equal 100%. Current total: ${totalPercentage.toFixed(2)}%`;
     }
     
@@ -38,8 +42,15 @@ export const setTargetAllocation = async (
       percentage: allocation.percentage
     }));
     
+    // Log the allocation being set
+    console.log('📊 TARGET ALLOCATION:');
+    formattedAllocations.forEach(allocation => {
+      console.log(`- ${allocation.symbol}: ${allocation.percentage.toFixed(2)}%`);
+    });
+    
     // Store the allocations
     await setTokenAllocation(agent, formattedAllocations, reasoning);
+    console.log('✅ Target allocation saved to portfolio_allocation_targets table');
     
     // Format a nice response
     let response = `✅ Target allocation ${reasoning ? 'updated' : 'set'} successfully:\n`;
@@ -54,12 +65,14 @@ export const setTargetAllocation = async (
     // Add reasoning if provided
     if (reasoning) {
       response += `\n\n📝 Reasoning for update: ${reasoning}`;
+      console.log(`📝 Allocation reasoning: ${reasoning}`);
     }
     
+    console.log('✅ ALLOCATION STRATEGY: Successfully recorded target allocation strategy');
     return response;
     
   } catch (error) {
-    console.error('Error setting target allocation:', error);
+    console.error('❌ Error setting target allocation:', error);
     return '❌ Error setting target allocation. Please try again.';
   }
 }; 
