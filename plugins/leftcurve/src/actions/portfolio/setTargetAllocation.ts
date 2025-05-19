@@ -17,6 +17,12 @@ export const setTargetAllocation = async (
   try {
     console.log('🎯 ALLOCATION STRATEGY: Agent is setting target portfolio allocation percentages');
     
+    // Get current date and time
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().replace('T', ' ').substring(0, 19);
+    
+    console.log(`📅 Date: ${formattedDate}`);
+    
     // Validate input allocations
     const { allocations, reasoning } = params;
     
@@ -53,7 +59,7 @@ export const setTargetAllocation = async (
     console.log('✅ Target allocation saved to portfolio_allocation_targets table');
     
     // Format a nice response
-    let response = `✅ Target allocation ${reasoning ? 'updated' : 'set'} successfully:\n`;
+    let response = `✅ Target allocation ${reasoning ? 'updated' : 'set'} successfully on ${formattedDate}:\n`;
     
     // Add the allocations
     const allocationList = formattedAllocations
