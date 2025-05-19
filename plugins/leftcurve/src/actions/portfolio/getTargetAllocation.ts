@@ -20,8 +20,15 @@ export const getTargetAllocation = async (
       return '⚠️ No target allocation has been set yet. Use set_target_allocation to define your investment strategy.';
     }
     
+    // Extract updated_at timestamp from the first allocation (they should all have the same timestamp)
+    let lastUpdated = '';
+    if (targetAllocations[0].updated_at) {
+      const dateObj = new Date(targetAllocations[0].updated_at);
+      lastUpdated = dateObj.toISOString().replace('T', ' ').substring(0, 19);
+    }
+    
     // Format the output
-    let output = '🎯 Current Target Allocation:\n\n';
+    let output = `🎯 Current Target Allocation (last updated: ${lastUpdated}):\n\n`;
     
     // Header
     output += '| Token | Target % |\n';
@@ -31,7 +38,7 @@ export const getTargetAllocation = async (
     const sortedAllocations = [...targetAllocations].sort((a, b) => b.percentage - a.percentage);
     
     // Token rows
-    console.log('📊 TARGET ALLOCATION FOUND:');
+    console.log(`📊 TARGET ALLOCATION FOUND (last updated: ${lastUpdated}):`);
     for (const allocation of sortedAllocations) {
       console.log(`- ${allocation.symbol}: ${allocation.percentage.toFixed(2)}%`);
       output += `| ${allocation.symbol} | ${allocation.percentage.toFixed(2)}% |\n`;

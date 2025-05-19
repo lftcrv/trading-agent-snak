@@ -10,6 +10,13 @@ export interface TokenAllocation {
 }
 
 /**
+ * Extended token allocation interface that includes the timestamp
+ */
+export interface TokenAllocationExtended extends TokenAllocation {
+  updated_at?: string;
+}
+
+/**
  * Database row interfaces
  */
 interface TableExistsRow {
@@ -19,6 +26,10 @@ interface TableExistsRow {
 interface AllocationRow {
   token_symbol: string;
   target_percentage: string;
+}
+
+interface AllocationRowExtended extends AllocationRow {
+  updated_at: string;
 }
 
 /**
@@ -111,7 +122,7 @@ export const setTokenAllocation = async (
  */
 export const getTokenAllocation = async (
   agent: StarknetAgentInterface
-): Promise<TokenAllocation[] | undefined> => {
+): Promise<TokenAllocationExtended[] | undefined> => {
   try {
     const containerId = getContainerId();
     const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
@@ -135,9 +146,9 @@ export const getTokenAllocation = async (
       return undefined;
     }
     
-    // Query the allocations
+    // Query the allocations with timestamps
     const result = await db.query(`
-      SELECT token_symbol, target_percentage 
+      SELECT token_symbol, target_percentage, updated_at 
       FROM portfolio_allocation_targets 
       ORDER BY target_percentage DESC
     `);
@@ -149,10 +160,11 @@ export const getTokenAllocation = async (
       return undefined;
     }
     
-    // Map the results to the TokenAllocation interface
-    const allocations: TokenAllocation[] = result.query.rows.map((row: AllocationRow) => ({
+    // Map the results to the TokenAllocationExtended interface
+    const allocations: TokenAllocationExtended[] = result.query.rows.map((row: AllocationRowExtended) => ({
       symbol: row.token_symbol,
-      percentage: parseFloat(row.target_percentage)
+      percentage: parseFloat(row.target_percentage),
+      updated_at: row.updated_at
     }));
     
     return allocations;

@@ -578,7 +578,7 @@ export const registerTools = async (
   StarknetToolRegistry.push({
     name: 'set_target_allocation',
     plugins: 'leftcurve',
-    description: 'IMPORTANT: Define or update your target portfolio allocation strategy by specifying percentage targets for each asset. You can use this at ANY TIME to adjust your strategy based on changing market conditions or new insights. You MUST include ALL tokens you know you can trade with (all specific tokens assigned to your agent, plus USDC). Do not exclude any of the tradable tokens - create a complete strategy that includes every available token. Check with list_supported_tokens to verify which ones are tradable. This will guide all your future trading decisions to maintain the desired balance. Example: If you were assigned DOGE, BOME, NIL, RAY, and XMR, a valid comprehensive allocation would be DOGE:20%, BOME:20%, NIL:20%, RAY:15%, XMR:15%, USDC:10%. Total must always equal 100%. Include reasoning for your allocation updates when market conditions change.',
+    description: 'IMPORTANT: Define or update your target portfolio allocation strategy by specifying percentage targets for each asset. Your allocation will be automatically time-stamped for reference. You can use this at ANY TIME to adjust your strategy based on changing market conditions or new insights. You MUST include ALL tokens you know you can trade with (all specific tokens assigned to your agent, plus USDC). Do not exclude any of the tradable tokens - create a complete strategy that includes every available token. Check with list_supported_tokens to verify which ones are tradable. This will guide all your future trading decisions to maintain the desired balance. Example: If you were assigned DOGE, BOME, NIL, RAY, and XMR, a valid comprehensive allocation would be DOGE:20%, BOME:20%, NIL:20%, RAY:15%, XMR:15%, USDC:10%. Total must always equal 100%. Include reasoning for your allocation updates when market conditions change.',
     schema: setTargetAllocationSchema,
     execute: setTargetAllocation,
   });
@@ -625,7 +625,7 @@ export const registerTools = async (
     name: 'set_strategy_text',
     plugins: 'leftcurve',
     description:
-      'IMPORTANT: Use this action to define your entry and exit strategy for each of your 5 assigned cryptocurrencies. You MUST create a bulleted list (one bullet per asset) that clearly states WHEN to enter positions and WHEN to take profits (exit conditions). Example: "- BTC: Buy when price drops below $40K, sell when 20% profit is achieved or if price drops 10% from entry". This strategy note will serve as your trading plan that you can reference before making decisions.',
+      'IMPORTANT: Use this action to define your entry and exit strategy for each of your 5 assigned cryptocurrencies. You MUST create a VERY CONCISE bulleted list (use Markdown format with one dash per line) that clearly states WHEN to enter positions and WHEN to take profits (exit conditions). Format MUST be:\n- CRYPTO1: [brief entry condition], [brief exit condition]\n- CRYPTO2: [brief entry condition], [brief exit condition]\n- CRYPTO3: [brief entry condition], [brief exit condition]\nExample: "- BTC: Buy when RSI < 30, sell at 15% profit or 7% loss". Keep each bullet to a SINGLE LINE. Do NOT use paragraphs or lengthy descriptions. This strict format ensures your strategy is clear and easily referenced in the future.',
     schema: setStrategyTextSchema,
     execute: setStrategyText,
   });
