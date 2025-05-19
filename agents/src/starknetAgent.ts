@@ -367,9 +367,14 @@ export class StarknetAgent implements IAgent {
       throw new Error(`Can't use execute with agent_mode: ${this.currentMode}`);
     }
 
-    const result = await this.agentReactExecutor.invoke({
-      messages: input,
-    });
+    const result = await this.agentReactExecutor.invoke(
+      {
+        messages: input,
+      },
+      {
+        recursionLimit: 50,
+      }
+    );
 
     return result.messages[result.messages.length - 1].content;
   }
@@ -403,7 +408,12 @@ export class StarknetAgent implements IAgent {
         `Can't use execute call data with agent_mode: ${this.currentMode}`
       );
     }
-    const aiMessage = await this.agentReactExecutor.invoke({ messages: input });
+    const aiMessage = await this.agentReactExecutor.invoke(
+      { messages: input },
+      {
+        recursionLimit: 50,
+      }
+    );
     try {
       const parsedResult = JSON.parse(
         aiMessage.messages[aiMessage.messages.length - 2].content
