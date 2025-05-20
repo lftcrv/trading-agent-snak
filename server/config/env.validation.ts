@@ -49,6 +49,7 @@ const AI_PROVIDER_MODELS = {
     'gemini-1.5-pro-latest',
     'gemini-1.5-pro-001',
     'gemini-1.5-pro-002',
+    'gemini-2.5-flash-preview-04-17',
   ],
   ollama: [
     'llama3.3',
