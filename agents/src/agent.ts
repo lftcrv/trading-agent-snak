@@ -10,12 +10,95 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { createAllowedToollkits } from './tools/external_tools.js';
 import { createAllowedTools } from './tools/tools.js';
 import { MCP_CONTROLLER } from './mcp/src/mcp.js';
+import { adaptToolsForGemini } from './tools/gemini-adapter.js';
+
+// Monkey patch the ChatGoogleGenerativeAI for tools compatibility
+// This ensures the patch is applied only once
+let isGeminiPatched = false;
+function patchGeminiForToolsCompat() {
+  if (isGeminiPatched) return;
+  
+  // Get the original _generate method directly from the prototype
+  const originalGenerate = ChatGoogleGenerativeAI.prototype._generate;
+  
+  // Override the method
+  ChatGoogleGenerativeAI.prototype._generate = async function(...args) {
+    try {
+      // If we have tools in our params, patch them before sending
+      const messages = args[0];
+      const options = args[1];
+      
+      if (options && options.tools) {
+        console.log('Adapting tools for Gemini compatibility');
+        
+        // Make a deep copy and adapt tools
+        const adaptedTools = JSON.parse(JSON.stringify(options.tools));
+        for (const tool of adaptedTools) {
+          if (tool.functionDeclarations) {
+            for (const func of tool.functionDeclarations) {
+              if (func.parameters) {
+                // Remove exclusiveMinimum property recursively
+                const cleanObject = (obj: any) => {
+                  if (!obj || typeof obj !== 'object') return;
+                  
+                  if ('exclusiveMinimum' in obj) {
+                    // Convert exclusiveMinimum: 0 to minimum: 1
+                    if (obj.exclusiveMinimum === 0) {
+                      obj.minimum = 1;
+                    } else {
+                      const increment = Number.isInteger(obj.exclusiveMinimum) ? 1 : 0.000001;
+                      obj.minimum = obj.exclusiveMinimum + increment;
+                    }
+                    delete obj.exclusiveMinimum;
+                  }
+                  
+                  if ('exclusiveMaximum' in obj) {
+                    const decrement = Number.isInteger(obj.exclusiveMaximum) ? 1 : 0.000001;
+                    obj.maximum = obj.exclusiveMaximum - decrement;
+                    delete obj.exclusiveMaximum;
+                  }
+                  
+                  // Process nested properties
+                  for (const key in obj) {
+                    if (typeof obj[key] === 'object' && obj[key] !== null) {
+                      cleanObject(obj[key]);
+                    }
+                  }
+                };
+                
+                cleanObject(func.parameters);
+              }
+            }
+          }
+        }
+        
+        // Replace with adapted tools
+        options.tools = adaptedTools;
+      }
+      
+      // Call the original method with the modified options
+      return await originalGenerate.apply(this, args);
+    } catch (error) {
+      console.error('Error in patched Gemini _generate method:', error);
+      // Fall back to original method if our patch fails
+      return await originalGenerate.apply(this, args);
+    }
+  };
+  
+  isGeminiPatched = true;
+}
 
 export const createAgent = async (
   starknetAgent: StarknetAgentInterface,
   aiConfig: AiConfig
 ) => {
   const isSignature = starknetAgent.getSignature().signature === 'wallet';
+  
+  // If Gemini is being used, apply our compatibility patch
+  if (aiConfig.aiProvider === 'gemini') {
+    patchGeminiForToolsCompat();
+  }
+  
   const model = () => {
     switch (aiConfig.aiProvider) {
       case 'anthropic':
