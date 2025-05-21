@@ -101,3 +101,20 @@ export interface ListMarketResponse {
     symbol: string;
   }>;
 }
+
+/**
+ * Structure pour stocker les données de prix en cache
+ */
+export interface CachedPrice {
+  price: number;
+  timestamp: number;
+  source: string;
+}
+
+/**
+ * Interface pour la réponse de l'API LeftCurve de prix
+ */
+export interface TokenPriceResponse {
+  canonicalSymbol: string;
+  priceUSD: number;
+}
