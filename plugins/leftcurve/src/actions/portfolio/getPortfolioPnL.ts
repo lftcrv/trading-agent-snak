@@ -3,6 +3,27 @@ import { getContainerId } from '../../utils/getContainerId.js';
 import { PriceService } from '../../services/PriceService.js';
 import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
 import { recordPnLCheck } from '../../utils/lastPnLCheck.js';
+import { formatAgentResponse } from '../../utils/formatAgentResponse.js';
+
+interface TokenPnL {
+  token: string;
+  balance: number;
+  current_price: number;
+  value_usd: number;
+  entry_price: number | null;
+  entry_timestamp: string | null;
+  unrealized_pnl: number;
+  pnl_percentage: number;
+}
+
+interface PortfolioPnLResult {
+  total_portfolio_value: number;
+  total_pnl: number;
+  portfolio_pnl_percentage: number;
+  tokens: TokenPnL[];
+  status: string;
+  message: string;
+}
 
 export interface GetPortfolioPnLParams {
   // No parameters needed for this action
@@ -11,11 +32,12 @@ export interface GetPortfolioPnLParams {
 /**
  * Gets the current PnL (Profit and Loss) for all tokens in the portfolio
  * Calculates unrealized PnL based on current market prices
+ * @returns JSON formatted string with PnL data
  */
 export const getPortfolioPnL = async (
   agent: StarknetAgentInterface,
   params: GetPortfolioPnLParams
-) => {
+): Promise<string> => {
   try {
     console.log('🚀 Starting getPortfolioPnL');
     // Record that a PnL check was performed
@@ -37,11 +59,16 @@ export const getPortfolioPnL = async (
       !portfolioResult.query ||
       portfolioResult.query.rows.length === 0
     ) {
-      return { 
-        success: false, 
+      const errorResponse: PortfolioPnLResult = {
+        status: 'error',
         message: 'No tokens found in portfolio',
-        pnl: [] 
+        total_portfolio_value: 0,
+        total_pnl: 0,
+        portfolio_pnl_percentage: 0,
+        tokens: []
       };
+      console.log(formatAgentResponse(errorResponse, 'portfolio_pnl'));
+      return formatAgentResponse(errorResponse, 'portfolio_pnl');
     }
 
     const tokens = portfolioResult.query.rows;
@@ -55,7 +82,7 @@ export const getPortfolioPnL = async (
     let totalPnL = 0;
     
     // Process each token and update its PnL
-    const tokenPnLs = [];
+    const tokenPnLs: TokenPnL[] = [];
     
     for (const token of tokens) {
       const symbol = token.token_symbol;
@@ -137,54 +164,47 @@ export const getPortfolioPnL = async (
       : 0;
     
     // Format the response
-    const result = {
+    const result: PortfolioPnLResult = {
+      status: 'success',
+      message: 'Portfolio PnL calculated successfully',
       total_portfolio_value: totalPortfolioValue,
       total_pnl: totalPnL,
       portfolio_pnl_percentage: portfolioPnLPercentage,
       tokens: tokenPnLs
     };
     
-    console.log('📊 Portfolio PnL calculated successfully');
-    console.log(`💰 Total portfolio value: $${totalPortfolioValue.toFixed(2)}`);
-    console.log(`💸 Total PnL: $${totalPnL.toFixed(2)} (${portfolioPnLPercentage.toFixed(2)}%)`);
-    
-    // Check if we have only USDC
+    // Generate message for result based on portfolio content
     if (tokenPnLs.length === 1 && tokenPnLs[0].token === 'USDC') {
-      console.log('⚠️ Portfolio contains only USDC. No PnL to calculate.');
-    } else {
-      console.log('📈 Token PnLs:');
-      tokenPnLs.forEach(token => {
-        if (token.token !== 'USDC' && token.entry_price) {
-          console.log(`  ${token.token}: $${token.unrealized_pnl.toFixed(2)} (${token.pnl_percentage.toFixed(2)}%) | Entry: $${token.entry_price.toFixed(2)} | Current: $${token.current_price.toFixed(2)}`);
-        }
-      });
-    }
-    
-    // Format a human-readable message
-    let message = 'Portfolio PnL calculated successfully';
-    if (tokenPnLs.length === 1 && tokenPnLs[0].token === 'USDC') {
-      message = 'Portfolio contains only USDC with no PnL to calculate';
+      result.message = 'Portfolio contains only USDC with no PnL to calculate';
     } else {
       const nonUsdcTokens = tokenPnLs.filter(t => t.token !== 'USDC');
       if (nonUsdcTokens.length > 0) {
         const tokenSummaries = nonUsdcTokens.map(t => 
           `${t.token}: ${t.pnl_percentage.toFixed(2)}% (${t.unrealized_pnl > 0 ? '+' : ''}$${t.unrealized_pnl.toFixed(2)})`
         );
-        message = `Portfolio value: $${totalPortfolioValue.toFixed(2)} | Total PnL: ${totalPnL > 0 ? '+' : ''}$${totalPnL.toFixed(2)} (${portfolioPnLPercentage.toFixed(2)}%) | ${tokenSummaries.join(' | ')}`;
+        result.message = `Portfolio value: $${totalPortfolioValue.toFixed(2)} | Total PnL: ${totalPnL > 0 ? '+' : ''}$${totalPnL.toFixed(2)} (${portfolioPnLPercentage.toFixed(2)}%) | ${tokenSummaries.join(' | ')}`;
       }
     }
     
-    return { 
-      success: true, 
-      message,
-      pnl: result
-    };
+    // Log the JSON response
+    console.log(formatAgentResponse(result, 'portfolio_pnl'));
+    
+    // Return the JSON-formatted response
+    return formatAgentResponse(result, 'portfolio_pnl');
+    
   } catch (error) {
-    console.error('❌ Error in getPortfolioPnL:', error);
-    return { 
-      success: false, 
+    const errorResponse: PortfolioPnLResult = {
+      status: 'error',
       message: `Error calculating PnL: ${error.message || error}`,
-      pnl: []
+      total_portfolio_value: 0,
+      total_pnl: 0,
+      portfolio_pnl_percentage: 0,
+      tokens: []
     };
+    
+    console.error('❌ Error in getPortfolioPnL:', error);
+    console.log(formatAgentResponse(errorResponse, 'portfolio_pnl'));
+    
+    return formatAgentResponse(errorResponse, 'portfolio_pnl');
   }
 }; 

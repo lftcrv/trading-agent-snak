@@ -3,6 +3,7 @@ import { getPortfolioTokens } from '../../utils/getPortfolioTokens.js';
 import { formatCurrency } from '../../utils/formatCurrency.js';
 import { getTokenPrice } from '../../utils/getTokenPrice.js';
 import { getTokenAllocation } from '../../utils/tokenAllocation.js';
+import { formatAgentResponse } from '../../utils/formatAgentResponse.js';
 
 interface TokenData {
   symbol: string;
@@ -14,10 +15,27 @@ interface TokenData {
   deviation?: number;
 }
 
+interface DeviationData {
+  symbol: string;
+  currentAllocation: number;
+  targetAllocation: number;
+  deviation: number;
+  action: string;
+  description: string;
+}
+
+interface PortfolioData {
+  totalValue: number;
+  tokens: TokenData[];
+  hasTargetAllocations: boolean;
+  targetAllocations: any[];
+  significantDeviations: DeviationData[];
+}
+
 /**
  * Prints the current portfolio holdings
  * @param agent The Starknet agent
- * @returns A formatted string with the portfolio details
+ * @returns A formatted JSON string with the portfolio details
  */
 export const printPortfolio = async (
   agent: StarknetAgentInterface
@@ -29,7 +47,10 @@ export const printPortfolio = async (
     const tokens = await getPortfolioTokens(agent);
     
     if (!tokens || tokens.length === 0) {
-      return '❌ No tokens found in portfolio.';
+      return formatAgentResponse({
+        status: 'error',
+        message: 'No tokens found in portfolio.'
+      }, 'portfolio');
     }
     
     // Get target allocations if they exist
@@ -76,97 +97,49 @@ export const printPortfolio = async (
     // Sort tokens by value (descending)
     tokenData.sort((a, b) => b.value - a.value);
     
-    // Format the output
-    let output = '📊 CURRENT PORTFOLIO ALLOCATION:\n\n';
+    // Check if target allocations exist and have values
+    const hasTargetAllocations = !!(targetAllocations && targetAllocations.length > 0);
     
-    // Header
-    output += '| Token | Balance | Price | Value | Current % |';
-    if (targetAllocations && targetAllocations.length > 0) {
-      output += ' Target % | Deviation |';
-    }
-    output += '\n';
-    
-    // Separator
-    output += '|-------|---------|-------|-------|-----------|';
-    if (targetAllocations && targetAllocations.length > 0) {
-      output += '---------|-----------|';
-    }
-    output += '\n';
-    
-    // Token rows
-    for (const token of tokenData) {
-      output += `| ${token.symbol} | ${token.balance.toFixed(4)} | $${token.price.toFixed(4)} | $${token.value.toFixed(2)} | ${token.allocation.toFixed(2)}% |`;
-      
-      // Add target allocation and deviation if they exist
-      if (targetAllocations && targetAllocations.length > 0) {
-        if (token.targetAllocation !== undefined) {
-          output += ` ${token.targetAllocation.toFixed(2)}% |`;
-          
-          // Format deviation with color and sign
-          if (token.deviation !== undefined) {
-            const deviationStr = token.deviation > 0 
-              ? `+${token.deviation.toFixed(2)}%` 
-              : `${token.deviation.toFixed(2)}%`;
-            
-            output += ` ${deviationStr} |`;
-          } else {
-            output += ' N/A |';
-          }
-        } else {
-          output += ' N/A | N/A |';
-        }
-      }
-      
-      output += '\n';
-    }
-    
-    // Total row
-    output += `| TOTAL | | | $${totalValue.toFixed(2)} | 100% |`;
-    if (targetAllocations && targetAllocations.length > 0) {
-      output += ' 100% | |';
-    }
-    output += '\n\n';
-    
-    // Add summary of current allocation
-    output += '💼 CURRENT ALLOCATION SUMMARY:\n';
-    for (const token of tokenData) {
-      output += `- ${token.symbol}: ${token.allocation.toFixed(2)}% of portfolio (${token.balance.toFixed(4)} tokens @ $${token.price.toFixed(4)} = $${token.value.toFixed(2)})\n`;
-    }
-    output += '\n';
-    
-    // Add target allocation summary if it exists
-    if (targetAllocations && targetAllocations.length > 0) {
-      output += '🎯 TARGET ALLOCATION STRATEGY:\n';
-      const sortedTargets = [...targetAllocations].sort((a, b) => b.percentage - a.percentage);
-      for (const target of sortedTargets) {
-        output += `- ${target.symbol}: ${target.percentage.toFixed(2)}%\n`;
-      }
-      output += '\n';
-    }
+    // Create a structured response object
+    const portfolioData: PortfolioData = {
+      totalValue,
+      tokens: tokenData,
+      hasTargetAllocations,
+      targetAllocations: targetAllocations || [],
+      significantDeviations: []
+    };
     
     // Add recommendation if there are significant deviations
-    if (targetAllocations && targetAllocations.length > 0) {
-      const significantDeviations = tokenData
+    if (hasTargetAllocations) {
+      const significantDeviations: DeviationData[] = tokenData
         .filter(t => t.deviation !== undefined && Math.abs(t.deviation) > 5)
-        .sort((a, b) => Math.abs(b.deviation!) - Math.abs(a.deviation!));
+        .sort((a, b) => Math.abs(b.deviation!) - Math.abs(a.deviation!))
+        .map(token => ({
+          symbol: token.symbol,
+          currentAllocation: token.allocation,
+          targetAllocation: token.targetAllocation!,
+          deviation: token.deviation!,
+          action: token.deviation! > 5 ? 'REDUCE' : 'INCREASE',
+          description: token.deviation! > 5 
+            ? `REDUCE ${token.symbol}: Currently ${token.allocation.toFixed(2)}%, target ${token.targetAllocation!.toFixed(2)}% (${token.deviation!.toFixed(2)}% overweight)`
+            : `INCREASE ${token.symbol}: Currently ${token.allocation.toFixed(2)}%, target ${token.targetAllocation!.toFixed(2)}% (${Math.abs(token.deviation!).toFixed(2)}% underweight)`
+        }));
       
-      if (significantDeviations.length > 0) {
-        output += '📝 REBALANCING RECOMMENDATIONS:\n';
-        
-        for (const token of significantDeviations) {
-          if (token.deviation! > 5) {
-            output += `- REDUCE ${token.symbol}: Currently ${token.allocation.toFixed(2)}%, target ${token.targetAllocation!.toFixed(2)}% (${token.deviation!.toFixed(2)}% overweight)\n`;
-          } else if (token.deviation! < -5) {
-            output += `- INCREASE ${token.symbol}: Currently ${token.allocation.toFixed(2)}%, target ${token.targetAllocation!.toFixed(2)}% (${Math.abs(token.deviation!).toFixed(2)}% underweight)\n`;
-          }
-        }
-      }
+      portfolioData.significantDeviations = significantDeviations;
     }
     
-    return output;
+    // Print to console using the same JSON format
+    console.log(formatAgentResponse(portfolioData, 'portfolio'));
+    
+    // Return the JSON-formatted data
+    return formatAgentResponse(portfolioData, 'portfolio');
     
   } catch (error) {
     console.error('❌ Error printing portfolio:', error);
-    return '❌ Error printing portfolio. Please try again.';
+    return formatAgentResponse({
+      status: 'error',
+      message: 'Error printing portfolio. Please try again.',
+      error: error.message
+    }, 'portfolio');
   }
 };

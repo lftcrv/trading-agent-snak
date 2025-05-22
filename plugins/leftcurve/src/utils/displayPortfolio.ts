@@ -2,6 +2,26 @@ import { StarknetAgentInterface } from '@starknet-agent-kit/agents';
 import { getContainerId } from './getContainerId.js';
 import { PriceService } from '../services/PriceService.js';
 import { getParadexConfig } from '@starknet-agent-kit/plugin-paradex/dist/utils/utils.js';
+import { formatAgentResponse } from './formatAgentResponse.js';
+
+interface TokenValueData {
+  symbol: string;
+  balance: number;
+  currentPrice: number;
+  value: number;
+  calculatedValue: number;
+  entryPrice: number | null;
+  allocation: number;
+  pnl?: number;
+  pnlPercentage?: number;
+}
+
+interface PortfolioSummary {
+  totalValue: number;
+  tokens: TokenValueData[];
+  status: string;
+  message?: string;
+}
 
 /**
  * Displays the complete portfolio with balances and values
@@ -13,14 +33,15 @@ export const displayPortfolio = async (
   agent: StarknetAgentInterface
 ): Promise<void> => {
   try {
-    console.log('📊 PORTFOLIO SUMMARY:');
-    console.log('---------------------');
-    
     const containerId = getContainerId();
     const db = await agent.getDatabaseByName(`leftcurve_db_${containerId}`);
     
     if (!db) {
-      console.error(`Database leftcurve_db_${containerId} not found`);
+      const errorMsg = {
+        status: 'error',
+        message: `Database leftcurve_db_${containerId} not found`
+      };
+      console.log(formatAgentResponse(errorMsg, 'portfolio_display'));
       return;
     }
 
@@ -36,7 +57,11 @@ export const displayPortfolio = async (
       !result.query ||
       result.query.rows.length === 0
     ) {
-      console.log('Portfolio is empty');
+      const emptyMsg = {
+        status: 'info',
+        message: 'Portfolio is empty'
+      };
+      console.log(formatAgentResponse(emptyMsg, 'portfolio_display'));
       return;
     }
 
@@ -46,7 +71,7 @@ export const displayPortfolio = async (
     let totalValue = 0;
     
     // First pass to calculate total value
-    const tokenValues = [];
+    const tokenValues: TokenValueData[] = [];
     for (const token of result.query.rows) {
       const symbol = token.token_symbol;
       const balance = Number(token.balance);
@@ -70,7 +95,6 @@ export const displayPortfolio = async (
         // Check if balance is unreasonably high which could suggest a unit error
         if (balance > 10) { // Having >10 BTC would be unusual for most portfolios
           console.warn(`⚠️ WARNING: Unusually high BTC balance detected (${balance}). This may be a unit error.`);
-          // Optionally adjust calculations or warn the user
         }
       } else if (['ETH', 'WETH'].includes(symbol) && currentPrice > 500) {
         if (balance > 100) {
@@ -87,81 +111,55 @@ export const displayPortfolio = async (
       
       if (calculatedValue > MAX_REASONABLE_VALUE) {
         console.warn(`⚠️ WARNING: Calculated value for ${symbol} (${calculatedValue.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}) exceeds reasonable limits. This may indicate incorrect price data or balance units.`);
-        // Optionally cap the value for display purposes
-        // value = MAX_REASONABLE_VALUE;
       }
       
       totalValue += value;
-      tokenValues.push({
+      let entryPrice = token.entry_price ? Number(token.entry_price) : null;
+      
+      const tokenData: TokenValueData = {
         symbol,
         balance,
         currentPrice,
         value,
-        calculatedValue, // Store original value for debugging
-        entryPrice: token.entry_price ? Number(token.entry_price) : null
-      });
+        calculatedValue,
+        entryPrice,
+        allocation: 0 // Will be calculated in second pass
+      };
+      
+      tokenValues.push(tokenData);
     }
 
-    console.log('| Token | Balance | Entry Price | Current Price | Value (USD) | Allocation % | PnL | PnL % |');
-    console.log('|-------|---------|-------------|---------------|-------------|--------------|-----|-------|');
-
-    // Second pass to display with allocations
+    // Second pass to calculate allocations and PnL
     for (const token of tokenValues) {
-      const { symbol, balance, currentPrice, value, entryPrice } = token;
+      // Calculate allocation percentage
+      token.allocation = (token.value / totalValue) * 100;
       
-      // Calculate allocation percentage - ensure proper formatting for very small values
-      const allocation = (value / totalValue) * 100;
-      const formattedAllocation = allocation < 0.01 ? '<0.01' : allocation.toFixed(2);
-      
-      let pnl = 'N/A';
-      let pnlPct = 'N/A';
-      
-      if (entryPrice !== null && symbol !== 'USDC') {
-        const unrealizedPnL = balance * (currentPrice - entryPrice);
-        const pnlPercentage = ((currentPrice / entryPrice) - 1) * 100;
-        
-        // Sanity check for PnL percentage
-        const formattedPnLPct = Math.abs(pnlPercentage) > 1000 ? 
-          `${pnlPercentage > 0 ? '>' : '<'}1000%` : 
-          `${pnlPercentage.toFixed(2)}%`;
-        
-        pnl = `$${unrealizedPnL.toFixed(2)}`;
-        pnlPct = formattedPnLPct;
+      // Calculate PnL if entry price is available
+      if (token.entryPrice !== null && token.symbol !== 'USDC') {
+        token.pnl = token.balance * (token.currentPrice - token.entryPrice);
+        token.pnlPercentage = ((token.currentPrice / token.entryPrice) - 1) * 100;
       }
-      
-      // Format value with appropriate commas for readability
-      const formattedValue = value.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      
-      console.log(`| ${symbol.padEnd(5)} | ${balance.toFixed(6).padEnd(9)} | $${entryPrice ? entryPrice.toFixed(4) : 'N/A'.padEnd(4)} | $${currentPrice.toFixed(4).padEnd(6)} | $${formattedValue.padEnd(13)} | ${formattedAllocation}% | ${pnl.padEnd(15)} | ${pnlPct.padEnd(10)} |`);
     }
     
-    // Format total value with appropriate commas
-    const formattedTotal = totalValue.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+    // Sort tokens by value (descending)
+    tokenValues.sort((a, b) => b.value - a.value);
     
-    console.log('---------------------');
-    console.log(`Total Portfolio Value: $${formattedTotal}`);
-    console.log('---------------------');
-
-    // Add allocation summary section
-    console.log('\n📊 ALLOCATION BREAKDOWN:');
-    for (const token of tokenValues) {
-      const allocation = (token.value / totalValue) * 100;
-      const formattedAllocation = allocation < 0.01 ? '<0.01' : allocation.toFixed(2);
-      const formattedValue = token.value.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      console.log(`- ${token.symbol}: ${formattedAllocation}% ($${formattedValue})`);
-    }
-    console.log('---------------------');
+    // Create portfolio summary object for JSON output
+    const portfolioSummary: PortfolioSummary = {
+      status: 'success',
+      totalValue,
+      tokens: tokenValues
+    };
+    
+    // Log the JSON formatted portfolio data to console
+    console.log(formatAgentResponse(portfolioSummary, 'portfolio_display'));
     
   } catch (error) {
-    console.error('Error displaying portfolio:', error);
+    const errorData = {
+      status: 'error',
+      message: 'Error displaying portfolio',
+      error: error.message
+    };
+    console.error(formatAgentResponse(errorData, 'portfolio_display'));
   }
 }; 
