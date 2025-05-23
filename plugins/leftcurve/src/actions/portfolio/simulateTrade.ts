@@ -36,27 +36,27 @@ export const simulateTrade = async (
     }
     
     // Validate that both tokens are supported on Paradex
-    if (params.fromToken.toUpperCase() !== 'USDC') {
-      const fromTokenValidation = validateSupportedToken(params.fromToken);
-      if (!fromTokenValidation.isSupported) {
-        console.error(`❌ ${fromTokenValidation.message}`);
-        return { 
-          success: false, 
-          message: fromTokenValidation.message
-        };
-      }
-    }
+    //if (params.fromToken.toUpperCase() !== 'USDC') {
+    //  const fromTokenValidation = validateSupportedToken(params.fromToken);
+    //  if (!fromTokenValidation.isSupported) {
+    //    console.error(`❌ ${fromTokenValidation.message}`);
+    //    return { 
+    //      success: false, 
+    //      message: fromTokenValidation.message
+    //    };
+    //  }
+    //}
     
-    if (params.toToken.toUpperCase() !== 'USDC') {
-      const toTokenValidation = validateSupportedToken(params.toToken);
-      if (!toTokenValidation.isSupported) {
-        console.error(`❌ ${toTokenValidation.message}`);
-        return { 
-          success: false, 
-          message: toTokenValidation.message
-        };
-      }
-    }
+    //if (params.toToken.toUpperCase() !== 'USDC') {
+    //  const toTokenValidation = validateSupportedToken(params.toToken);
+    //  if (!toTokenValidation.isSupported) {
+    //    console.error(`❌ ${toTokenValidation.message}`);
+    //    return { 
+    //      success: false, 
+    //      message: toTokenValidation.message
+    //    };
+    //  }
+    //}
     
     const containerId = getContainerId();
 
@@ -238,7 +238,7 @@ export const simulateTrade = async (
       }
 
       // Display the complete portfolio after the trade
-      await displayPortfolio(agent);
+      //await displayPortfolio(agent);
 
       return { success: true, message: msg };
     } catch (error) {

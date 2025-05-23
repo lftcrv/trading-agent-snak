@@ -346,23 +346,23 @@ export const registerTools = async (
   //   execute: swapTokens,
   // });
 
-  StarknetToolRegistry.push({
-    name: 'get_paradex_market_details',
-    plugins: 'leftcurve',
-    description:
-      'Get maximum detailed information about a specific market on Paradex',
-    schema: getMarketDetailsSchema,
-    execute: paradexGetMarketDetails,
-  });
+  //StarknetToolRegistry.push({
+  //  name: 'get_paradex_market_details',
+  //  plugins: 'leftcurve',
+  //  description:
+  //    'Get maximum detailed information about a specific market on Paradex',
+  //  schema: getMarketDetailsSchema,
+  //  execute: paradexGetMarketDetails,
+  //});
 
-  StarknetToolRegistry.push({
-    name: 'get_paradex_market_trading_info',
-    plugins: 'leftcurve',
-    description:
-      'Get essential trading information for one or multiple markets on Paradex',
-    schema: getMarketTradingInfoSchema,
-    execute: paradexGetMarketTradingInfo,
-  });
+  //StarknetToolRegistry.push({
+  //  name: 'get_paradex_market_trading_info',
+  //  plugins: 'leftcurve',
+  //  description:
+  //    'Get essential trading information for one or multiple markets on Paradex',
+  //  schema: getMarketTradingInfoSchema,
+  //  execute: paradexGetMarketTradingInfo,
+  //});
 
   // StarknetToolRegistry.push({
   //   name: 'place_order_limit_paradex',
@@ -426,21 +426,21 @@ export const registerTools = async (
   //   execute: sendParadexBalance,
   // });
 
-  StarknetToolRegistry.push({
-    name: 'list_supported_tokens',
-    plugins: 'leftcurve',
-    description: 'Get a list of all tokens on Paradex, clearly differentiating between tokens that have active trading markets and those that don\'t. IMPORTANT: Always check this list before attempting to trade with any token - only tokens with active USD or BTC markets can actually be traded. This tool now ensures you only attempt to trade tokens with active markets, preventing errors.',
-    schema: listSupportedTokensSchema,
-    execute: listSupportedTokens,
-  });
+  //StarknetToolRegistry.push({
+  //  name: 'list_supported_tokens',
+  //  plugins: 'leftcurve',
+  //  description: 'Get a list of all tokens on Paradex, clearly differentiating between tokens that have active trading markets and those that don\'t. IMPORTANT: Always check this list before attempting to trade with any token - only tokens with active USD or BTC markets can actually be traded. This tool now ensures you only attempt to trade tokens with active markets, preventing errors.',
+  //  schema: listSupportedTokensSchema,
+  //  execute: listSupportedTokens,
+  //});
 
-  StarknetToolRegistry.push({
-    name: 'list_markets',
-    plugins: 'leftcurve',
-    description: 'Get a list of all available market symbols on Paradex',
-    schema: listMarketsSchema,
-    execute: paradexListMarkets,
-  });
+  //StarknetToolRegistry.push({
+  //  name: 'list_markets',
+  //  plugins: 'leftcurve',
+  //  description: 'Get a list of all available market symbols on Paradex',
+  //  schema: listMarketsSchema,
+  //  execute: paradexListMarkets,
+  //});
 
   StarknetToolRegistry.push({
     name: 'get_analysis_paradex',
@@ -519,13 +519,13 @@ export const registerTools = async (
     execute: noTrade,
   });
 
-  StarknetToolRegistry.push({
-    name: 'get_paradex_trade_history',
-    plugins: 'leftcurve',
-    description: 'Retrieve the latest trades (up to 8) executed on Paradex. IMPORTANT: This tool MUST be called before each operation on Paradex to avoid revert trades and ensure you have the latest market information. CRITICAL: After reviewing your trade history, if you see that you recently swapped from Token A to Token B, you should NEVER swap back from Token B to Token A within a short timeframe unless market conditions have drastically changed (>10% price movement). Such behavior demonstrates poor trading strategy and significantly reduces profitability.',
-    schema: getTradeHistorySchema,
-    execute: getParadexTradeHistory,
-  });
+  //StarknetToolRegistry.push({
+  //  name: 'get_paradex_trade_history',
+  //  plugins: 'leftcurve',
+  //  description: 'Retrieve the latest trades (up to 8) executed on Paradex. IMPORTANT: This tool MUST be called before each operation on Paradex to avoid revert trades and ensure you have the latest market information. CRITICAL: After reviewing your trade history, if you see that you recently swapped from Token A to Token B, you should NEVER swap back from Token B to Token A within a short timeframe unless market conditions have drastically changed (>10% price movement). Such behavior demonstrates poor trading strategy and significantly reduces profitability.',
+  //  schema: getTradeHistorySchema,
+  //  execute: getParadexTradeHistory,
+  //});
 
   StarknetToolRegistry.push({
     name: 'get_portfolio_pnl',
